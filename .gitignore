@@ -1,0 +1,37 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+.env.local
+*.sqlite3
+db.sqlite3
+/media
+/static_collected
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-data/
+*.log
