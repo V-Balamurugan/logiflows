@@ -94,6 +94,14 @@ DB_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'logiflows_dev_password_2026')
 DB_HOST = os.getenv('POSTGRES_HOST', 'localhost')
 DB_PORT = os.getenv('POSTGRES_PORT', '5432')
 
+# Automatically normalize Docker service hostname 'db' to 'localhost' if running on host
+if DB_HOST == 'db':
+    import socket
+    try:
+        socket.gethostbyname('db')
+    except (socket.gaierror, OSError):
+        DB_HOST = 'localhost'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
