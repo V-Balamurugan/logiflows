@@ -42,6 +42,7 @@ urlpatterns = [
 
     # Core API namespace /api/v1/
     path('api/v1/', include('apps.core.urls')),
+    path('api/v1/', include('apps.accounts.urls')),
 
     # OpenAPI Schema & Interactive Documentation
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),

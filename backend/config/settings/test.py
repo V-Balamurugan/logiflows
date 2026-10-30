@@ -11,6 +11,9 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.MD5PasswordHasher',
 ]
 
+# Use in-memory email backend for tests
+EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+
 # Use in-memory SQLite for unit tests unless USE_POSTGRES_TEST is explicitly enabled
 if os.getenv('USE_POSTGRES_TEST', 'false').lower() not in ('true', '1', 'yes'):
     DATABASES = {

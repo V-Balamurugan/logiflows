@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     # Third-party libraries
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'drf_spectacular',
 
@@ -169,7 +170,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
+    'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
@@ -178,6 +179,28 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
+
+# Cookie-based Authentication Settings (HttpOnly Refresh Token)
+AUTH_COOKIE_NAME = os.getenv('AUTH_COOKIE_NAME', 'refresh_token')
+AUTH_COOKIE_PATH = os.getenv('AUTH_COOKIE_PATH', '/api/v1/auth/')
+AUTH_COOKIE_DOMAIN = os.getenv('AUTH_COOKIE_DOMAIN', None)
+AUTH_COOKIE_SECURE = os.getenv('AUTH_COOKIE_SECURE', 'False' if DEBUG else 'True') == 'True'
+AUTH_COOKIE_HTTPONLY = True
+AUTH_COOKIE_SAMESITE = os.getenv('AUTH_COOKIE_SAMESITE', 'Lax')
+AUTH_COOKIE_MAX_AGE = int(os.getenv('AUTH_COOKIE_MAX_AGE', 60 * 60 * 24 * 7))  # 7 days
+
+# Email Delivery Configuration (Mailpit in local dev, SMTP in staging/prod)
+EMAIL_BACKEND = os.getenv(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '1025'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'LogiFlows <noreply@logiflows.com>')
+
+# Frontend Application Web URL (used in email links)
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 
 # DRF Spectacular OpenAPI / Swagger UI Settings
 SPECTACULAR_SETTINGS = {
