@@ -89,10 +89,11 @@ DB_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'logiflows_dev_password_2026')
 DB_HOST = os.getenv('POSTGRES_HOST', 'localhost')
 DB_PORT = os.getenv('POSTGRES_PORT', '5432')
 
-# Automatically normalize Docker service hostname 'db' to 'localhost' if running on host
-if DB_HOST == 'db':
+# Automatically resolve DB_HOST: if 'db' resolves via DNS (inside Docker network), use 'db'; else use 'localhost'
+if DB_HOST in ('db', 'localhost', '127.0.0.1'):
     try:
         socket.gethostbyname('db')
+        DB_HOST = 'db'
     except (socket.gaierror, OSError):
         DB_HOST = 'localhost'
 
@@ -195,6 +196,12 @@ EMAIL_BACKEND = os.getenv(
     'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
 )
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+if EMAIL_HOST in ('mailpit', 'localhost', '127.0.0.1'):
+    try:
+        socket.gethostbyname('mailpit')
+        EMAIL_HOST = 'mailpit'
+    except (socket.gaierror, OSError):
+        EMAIL_HOST = 'localhost'
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '1025'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'LogiFlows <noreply@logiflows.com>')
