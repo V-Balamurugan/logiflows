@@ -4,6 +4,7 @@ Test settings for LogiFlows backend test suites.
 from .base import *
 
 DEBUG = False
+ENVIRONMENT = 'test'
 
 # Faster password hasher for tests
 PASSWORD_HASHERS = [

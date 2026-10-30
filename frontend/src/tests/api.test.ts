@@ -30,7 +30,7 @@ describe('API Client & Endpoints Test Suite', () => {
     const result = await fetchHealth();
     expect(getSpy).toHaveBeenCalledWith('/health/');
     expect(result.status).toBe('healthy');
-    expect(result.components.database.connected).toBe(true);
+    expect(result.components?.database.connected).toBe(true);
   });
 
   it('fetchReadiness calls /readiness/ on apiClient', async () => {

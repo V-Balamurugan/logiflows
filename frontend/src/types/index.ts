@@ -1,28 +1,24 @@
 /**
- * TypeScript Data Contracts and UI Models for LogiFlows.
+ * TypeScript Data Contracts and UI Models for LogiFlows Phase 00.
  */
 
 export interface DatabaseStatus {
   connected: boolean;
-  engine: string;
-  latency_ms: number | null;
-  error: string | null;
-}
-
-export interface ApiStatus {
-  status: string;
-  framework: string;
+  latency_ms?: number | null;
+  error?: string | null;
 }
 
 export interface HealthResponse {
   status: 'healthy' | 'degraded' | 'unhealthy' | 'error';
-  service: string;
+  db: 'ok' | 'unavailable';
+  latency_ms?: number;
+  environment: string;
   version: string;
   timestamp: string;
-  environment: string;
-  components: {
+  service?: string;
+  components?: {
     database: DatabaseStatus;
-    api: ApiStatus;
+    api: { status: string; framework: string };
   };
 }
 
@@ -32,24 +28,21 @@ export interface ReadinessResponse {
   database?: {
     connected: boolean;
     latency_ms?: number;
-    engine?: string;
     error?: string;
   };
   timestamp: string;
-}
-
-export interface PlatformArchitecture {
-  multitenancy: string;
-  database: string;
-  roles: string[];
-  planned_modules: string[];
 }
 
 export interface PlatformInfoResponse {
   platform: string;
   phase: string;
   status: string;
-  architecture: PlatformArchitecture;
+  architecture: {
+    multitenancy: string;
+    database: string;
+    roles: string[];
+    planned_modules: string[];
+  };
 }
 
 export interface BreadcrumbItem {
@@ -58,39 +51,17 @@ export interface BreadcrumbItem {
 }
 
 export interface NavItem {
-  id: string;
+  to: string;
   label: string;
-  path: string;
-  iconName?: string;
+  icon: string;
   badge?: string;
-  planned?: boolean;
 }
 
-// Aliases and types for legacy prototype views compatibility
-export type HealthStatus = HealthResponse;
-export type PlatformInfo = PlatformInfoResponse;
+export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy' | 'error' | 'loading';
 
 export interface TenantContext {
   id: string;
   name: string;
-  code: string;
-  type: string;
+  slug: string;
+  plan: 'enterprise' | 'growth' | 'standard';
 }
-
-export type ShipmentStatusType =
-  | 'DRAFT'
-  | 'BOOKED'
-  | 'DISPATCHED'
-  | 'IN_TRANSIT'
-  | 'OUT_FOR_DELIVERY'
-  | 'DELIVERED'
-  | 'EXCEPTION'
-  | 'CANCELLED';
-
-export type UserRole =
-  | 'SUPER_ADMIN'
-  | 'TENANT_ADMIN'
-  | 'LOGISTICS_MANAGER'
-  | 'DISPATCHER'
-  | 'DRIVER'
-  | 'AUDITOR_VIEWER';

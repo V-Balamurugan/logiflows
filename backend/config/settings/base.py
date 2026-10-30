@@ -1,31 +1,24 @@
 """
-Base Django settings for LogiFlows B2B Logistics Management Platform.
-Shared across all environments (development, testing, production).
+Base settings for LogiFlows B2B Logistics Management Platform.
+Contains shared settings used across development, production, and testing.
 """
-import os
-import sys
 from pathlib import Path
+from datetime import timedelta
+import os
+import socket
 from dotenv import load_dotenv
 
-# BASE_DIR points to backend/ directory
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Load environment variables
-env_candidates = [
-    BASE_DIR / '.env',
-    BASE_DIR.parent / '.env',
-]
-for candidate in env_candidates:
-    if candidate.exists():
-        load_dotenv(candidate)
-        break
+# Load environment variables from .env file at workspace root
+load_dotenv(BASE_DIR.parent / '.env')
+load_dotenv(BASE_DIR / '.env')
 
-# Core Security
-SECRET_KEY = os.getenv(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-logiflows-dev-key-change-in-production-2026-phase-00'
-)
-DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
+# Security Settings
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-dev-key-logiflows-platform-2026')
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+ENVIRONMENT = os.getenv('DJANGO_ENVIRONMENT', 'development')
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -44,16 +37,17 @@ INSTALLED_APPS = [
 
     # Third-party libraries
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
     'drf_spectacular',
 
-    # LogiFlows Local Apps
-    'apps.users',
-    'apps.common',
+    # LogiFlows Core & Accounts Apps
+    'apps.core.apps.CoreConfig',
+    'apps.accounts.apps.AccountsConfig',
 ]
 
 # Custom User Model
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -96,7 +90,6 @@ DB_PORT = os.getenv('POSTGRES_PORT', '5432')
 
 # Automatically normalize Docker service hostname 'db' to 'localhost' if running on host
 if DB_HOST == 'db':
-    import socket
     try:
         socket.gethostbyname('db')
     except (socket.gaierror, OSError):
@@ -142,7 +135,7 @@ CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
         'CORS_ALLOWED_ORIGINS',
-        'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000'
+        'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost:5174'
     ).split(',')
     if origin.strip()
 ]
@@ -150,8 +143,14 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Django REST Framework Settings
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.StandardResultsSetPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -162,7 +161,22 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ],
-    'EXCEPTION_HANDLER': 'apps.common.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'apps.core.exceptions.custom_exception_handler',
+}
+
+# SimpleJWT Configuration
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
 # DRF Spectacular OpenAPI / Swagger UI Settings

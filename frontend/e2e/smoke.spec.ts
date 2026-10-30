@@ -31,8 +31,16 @@ test.describe('LogiFlows Phase 00 Browser Smoke Tests', () => {
     await page.goto('/app/architecture');
 
     await expect(page.getByText('System Architecture & 12-Phase Roadmap')).toBeVisible();
-    await expect(page.getByText('Phase 00', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('Phase 01', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(/Phase 00/i).first()).toBeVisible();
+    await expect(page.getByText(/Phase 01/i).first()).toBeVisible();
+  });
+
+  test('Design system page renders UI showcase components and states', async ({ page }) => {
+    await page.goto('/design-system');
+
+    await expect(page.getByText('Enterprise Design System & Tokens')).toBeVisible();
+    await expect(page.getByText('1. Color Palette Tokens')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Open Demonstration Modal/i })).toBeVisible();
   });
 
   test('Direct 404 error routing works', async ({ page }) => {

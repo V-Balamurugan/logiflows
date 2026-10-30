@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'teal';
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'teal';
   size?: 'sm' | 'md';
   dot?: boolean;
 }
@@ -23,6 +23,7 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantStyles = {
+    default: 'bg-blue-500/10 text-blue-400 border border-blue-500/30',
     success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30',
     warning: 'bg-amber-500/10 text-amber-400 border border-amber-500/30',
     error: 'bg-rose-500/10 text-rose-400 border border-rose-500/30',
@@ -32,6 +33,7 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const dotColors = {
+    default: 'bg-blue-400',
     success: 'bg-emerald-400',
     warning: 'bg-amber-400',
     error: 'bg-rose-400',

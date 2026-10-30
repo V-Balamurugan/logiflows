@@ -20,34 +20,16 @@ describe('Frontend Navigation & Routing Test Suite', () => {
     vi.mocked(healthApi.useHealthQuery).mockReturnValue({
       data: {
         status: 'healthy',
-        service: 'LogiFlows B2B Service Platform API',
+        db: 'ok',
         version: '1.0.0-phase-00',
         timestamp: '2026-10-30T12:00:00Z',
         environment: 'development',
-        components: {
-          database: { connected: true, engine: 'postgresql', latency_ms: 1.5, error: null },
-          api: { status: 'healthy', framework: 'Django REST Framework 3.15' },
-        },
+        latency_ms: 1.8,
       },
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
       dataUpdatedAt: Date.now(),
-    } as any);
-
-    vi.mocked(healthApi.useReadinessQuery).mockReturnValue({
-      data: { ready: true, status: 'ready', database: { connected: true, latency_ms: 1.2 } },
-      isLoading: false,
-      refetch: vi.fn(),
-    } as any);
-
-    vi.mocked(healthApi.usePlatformInfoQuery).mockReturnValue({
-      data: {
-        platform: 'LogiFlows B2B Logistics & Supply Chain Platform',
-        phase: 'Phase 00',
-        status: 'baseline_active',
-        architecture: { multitenancy: 'Shared', database: 'postgresql', roles: [], planned_modules: [] },
-      },
     } as any);
   });
 
@@ -62,13 +44,12 @@ describe('Frontend Navigation & Routing Test Suite', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Smart Postal &.*Logistics Management/i);
     expect(screen.getByText('Phase 00 Foundation Active')).toBeInTheDocument();
-    expect(screen.getByText('Multi-Tenant Organization Management')).toBeInTheDocument();
   });
 
-  it('renders development status page on /app/status', () => {
+  it('renders health/status page on /status with live DB telemetry', () => {
     render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/app/status']}>
+        <MemoryRouter initialEntries={['/status']}>
           <AppRoutes />
         </MemoryRouter>
       </QueryClientProvider>
@@ -77,21 +58,22 @@ describe('Frontend Navigation & Routing Test Suite', () => {
     expect(screen.getByText('Development Status & Telemetry')).toBeInTheDocument();
     expect(screen.getByText('Django REST API')).toBeInTheDocument();
     expect(screen.getByText('PostgreSQL 16')).toBeInTheDocument();
-    expect(screen.getByText('App Environment')).toBeInTheDocument();
+    expect(screen.getByText('DB: OK')).toBeInTheDocument();
   });
 
-  it('renders architecture page on /app/architecture', () => {
+  it('renders enterprise design system page on /design-system', () => {
     render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/app/architecture']}>
+        <MemoryRouter initialEntries={['/design-system']}>
           <AppRoutes />
         </MemoryRouter>
       </QueryClientProvider>
     );
 
-    expect(screen.getByText('System Architecture & 12-Phase Roadmap')).toBeInTheDocument();
-    expect(screen.getByText('Django Backend Layer')).toBeInTheDocument();
-    expect(screen.getByText('PostgreSQL 16 Persistence')).toBeInTheDocument();
+    expect(screen.getByText('Enterprise Design System & Tokens')).toBeInTheDocument();
+    expect(screen.getByText('1. Color Palette Tokens')).toBeInTheDocument();
+    expect(screen.getByText('2. Buttons & Actions')).toBeInTheDocument();
+    expect(screen.getByText('3. Form Controls')).toBeInTheDocument();
   });
 
   it('renders 404 NotFound page on unknown route', () => {

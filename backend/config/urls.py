@@ -13,22 +13,24 @@ from drf_spectacular.views import (
 
 
 def custom_page_not_found(request, exception=None):
-    """Global JSON 404 handler for API consumers."""
+    """Global JSON 404 handler matching standard error envelope."""
     return JsonResponse({
-        "status": "error",
-        "error_code": "NOT_FOUND",
-        "message": f"Endpoint '{request.path}' was not found on this server.",
-        "details": None,
+        "error": {
+            "code": "NOT_FOUND",
+            "message": f"Endpoint '{request.path}' was not found on this server.",
+            "details": None,
+        }
     }, status=404)
 
 
 def custom_server_error(request):
-    """Global JSON 500 handler for unexpected server errors."""
+    """Global JSON 500 handler matching standard error envelope."""
     return JsonResponse({
-        "status": "error",
-        "error_code": "INTERNAL_SERVER_ERROR",
-        "message": "An unexpected internal server error occurred.",
-        "details": None,
+        "error": {
+            "code": "INTERNAL_SERVER_ERROR",
+            "message": "An unexpected internal server error occurred.",
+            "details": None,
+        }
     }, status=500)
 
 
@@ -39,7 +41,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Core API namespace /api/v1/
-    path('api/v1/', include('apps.common.urls')),
+    path('api/v1/', include('apps.core.urls')),
 
     # OpenAPI Schema & Interactive Documentation
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
