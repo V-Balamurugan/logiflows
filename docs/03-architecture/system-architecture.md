@@ -1,45 +1,63 @@
-# System Architecture & Technical Specifications — LogiFlows
+# LogiFlows System Architecture
 
-## 1. High-Level Architecture
-LogiFlows adopts a decoupled Service-Oriented Architecture (SOA) consisting of a stateless Django REST Framework API backend, a PostgreSQL 16 relational datastore, and a modern React 18 / TypeScript / Vite Single Page Application.
+## 1. Architectural Philosophy
+LogiFlows is built following a decoupled, layered service architecture. It separates presentation (React SPA), API application logic (Django REST Framework), and persistence (PostgreSQL 16) into independent containerized components communicating over internal virtual bridge networks.
 
+---
+
+## 2. Multi-Tier Container Architecture
 ```mermaid
-graph TD
-    Client[Web Browser / Mobile Viewport] -->|HTTPS :3000| Nginx[Frontend Nginx Container]
-    Nginx -->|Static Assets| Client
-    Nginx -->|Reverse Proxy /api/v1/*| DRF[Django REST Framework :8000]
-    DRF -->|ORM / SQL Pool| PG[(PostgreSQL 16 Engine :5432)]
-    DRF -->|Health Check Probe| PG
-    Client -->|Direct Vite Dev Proxy :3000| DRF
+graph TB
+    subgraph ClientLayer["Client Layer (Browser)"]
+        Browser["Enterprise Web Client<br/>React 18 + TS + Vite"]
+    end
+
+    subgraph DockerHost["Docker Compose Virtual Network (logiflows_net)"]
+        subgraph FrontendService["Service: logiflows_frontend"]
+            Nginx["Nginx Reverse Proxy / Static Host<br/>Port 3000"]
+        end
+
+        subgraph BackendService["Service: logiflows_backend"]
+            Django["Django 5.1 / DRF 3.15 API<br/>Port 8000"]
+            Spec["OpenAPI 3.0 / Swagger UI"]
+            Users["Custom User Model (AbstractUser)"]
+            Common["Health & Readiness Probes"]
+        end
+
+        subgraph DatabaseService["Service: logiflows_db"]
+            Postgres["PostgreSQL 16 Alpine<br/>Port 5432"]
+            Vol[("Persistent Volume:<br/>postgres_data")]
+        end
+    end
+
+    Browser -->|HTTP Port 3000| Nginx
+    Nginx -->|Proxy /api/v1/ -> backend:8000| Django
+    Django -->|PostgreSQL Wire Protocol| Postgres
+    Postgres --- Vol
+    Django -.-> Spec
 ```
 
-## 2. Containerized Micro-Topology
-The platform is orchestrated via `docker-compose.yml` comprising three core services:
+---
 
-1. **`db` (PostgreSQL 16 Alpine)**:
-   - Persistent volume: `postgres_data:/var/lib/postgresql/data`
-   - Healthcheck: `pg_isready -U logiflows_user -d logiflows_db`
-   - Port binding: `5432:5432`
+## 3. Layer Breakdown
 
-2. **`backend` (Python 3.12 / Django 5.0 / DRF 3.15)**:
-   - Stateless WSGI/ASGI service
-   - Dependencies: `psycopg` 3.1, `djangorestframework`, `django-cors-headers`
-   - Dependency order: Waits for `db` to pass health check before boot
-   - Healthcheck: `curl -f http://localhost:8000/api/v1/health/`
-   - Port binding: `8000:8000`
+### 3.1 Presentation Layer (Frontend)
+- **Framework**: React 18, TypeScript, Vite.
+- **Styling**: Tailwind CSS with enterprise color tokens (Navy, Blue, White, Restrained Teal) and glassmorphism paneling.
+- **Routing**: React Router declarative client-side routes (`/`, `/app/status`, `/app/architecture`, `*`).
+- **Server State**: TanStack Query managing caching, deduplication, and periodic polling (10s intervals).
+- **HTTP Client**: Centralized Axios instance with base URL resolution and error interceptors.
 
-3. **`frontend` (Node 20 / React 18 / Vite / Nginx)**:
-   - High-performance, production-ready static build served by Alpine Nginx
-   - Reverse proxies all `/api/` requests to the backend container
-   - Port binding: `3000:3000`
+### 3.2 Application & Business Layer (Backend)
+- **Framework**: Python 3.12, Django 5.1, Django REST Framework 3.15.
+- **Settings Hierarchy**:
+  - `config.settings.base`: Common settings, DRF configuration, Spectactular OpenAPI settings, centralized logging.
+  - `config.settings.development`: Debug enabled, verbose console logging.
+  - `config.settings.test`: Fast in-memory database fallback, password hasher acceleration.
+- **Identity Foundation**: Minimal custom User model (`apps.users.models.User`) extending `AbstractUser`.
+- **API Standards**: Uniform error envelopes, pagination defaults (20 items/page), CORS restriction to authorized origins.
 
-## 3. Multi-Tenant Isolation Strategy
-LogiFlows implements **shared-database with row-level tenant scoping**:
-- All tenant-owned tables (`orders`, `shipments`, `invoices`, `drivers`, `vehicles`) feature a mandatory `tenant_id` foreign key referencing the `organizations` table.
-- DRF ViewSets automatically inject the authenticated user's `organization_id` into query filters (`queryset.filter(organization=request.user.organization)`).
-- Cross-tenant data leaks are physically blocked at the database query layer.
-
-## 4. Security Architecture
-- **Stateless Authorization**: JWT / Token-based authentication with cryptographically signed payloads.
-- **Backend Validation**: Authorization decisions are strictly evaluated in Django permissions classes (`IsAuthenticated`, `IsTenantAdmin`, `CanDispatchShipment`).
-- **Secret Management**: Sensitive keys (`DJANGO_SECRET_KEY`, database credentials) are injected through `.env` files and environment variables, never committed to git.
+### 3.3 Persistence Layer (Database)
+- **Engine**: PostgreSQL 16 Alpine.
+- **Volume**: `postgres_data` named Docker volume mounted at `/var/lib/postgresql/data`.
+- **Readiness Verification**: `pg_isready -U logiflows_user -d logiflows_db` health probe run every 5 seconds.

@@ -12,6 +12,9 @@ db.sqlite3
 htmlcov/
 .coverage
 .pytest_cache/
+.venv/
+venv/
+env/
 
 # Node / Frontend
 node_modules/
@@ -23,6 +26,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 coverage/
+test-results/
+playwright-report/
 
 # IDE / OS
 .idea/
@@ -35,3 +40,4 @@ Thumbs.db
 # Docker
 docker-data/
 *.log
+

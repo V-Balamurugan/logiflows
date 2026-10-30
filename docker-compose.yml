@@ -27,6 +27,7 @@ services:
     container_name: logiflows_backend
     restart: unless-stopped
     environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev_secret_key_change_in_production_logiflows_2026_secure}
       DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
       DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,backend,web,frontend,0.0.0.0
