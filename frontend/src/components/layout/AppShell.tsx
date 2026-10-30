@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity,
   Menu,
@@ -9,10 +9,14 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldCheck,
+  User as UserIcon,
+  LogOut,
+  LogIn,
 } from 'lucide-react';
 import Logo from '../common/Logo';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
+import { useAuth } from '../../context/AuthContext';
 
 export interface AppShellProps {
   children?: React.ReactNode;
@@ -21,6 +25,13 @@ export interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const navLinks = [
     {
@@ -43,6 +54,16 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       active: location.pathname === '/design-system',
       badge: 'Tokens',
     },
+    ...(isAuthenticated
+      ? [
+          {
+            to: '/profile',
+            label: 'My Profile & Security',
+            icon: <UserIcon className="w-4 h-4" />,
+            active: location.pathname === '/profile',
+          },
+        ]
+      : []),
   ];
 
   // Dynamic breadcrumb generation
@@ -52,6 +73,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       crumbs.push({ label: 'Platform Health & Status', path: '/status' });
     } else if (location.pathname === '/design-system') {
       crumbs.push({ label: 'Enterprise Design System', path: '/design-system' });
+    } else if (location.pathname === '/profile') {
+      crumbs.push({ label: 'Account Profile & Security', path: '/profile' });
     } else if (location.pathname !== '/') {
       crumbs.push({ label: location.pathname.replace('/', ''), path: location.pathname });
     }
@@ -75,7 +98,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             </button>
             <Logo size="md" />
             <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono bg-blue-950/60 text-blue-400 border border-blue-800/40">
-              Phase 00 Foundation
+              Phase 01 Auth & RBAC
             </span>
           </div>
 
@@ -101,6 +124,40 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <span>Swagger UI</span>
               <ExternalLink className="w-3 h-3" />
             </a>
+
+            {/* Auth State Pill */}
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-2 pl-3 border-l border-slate-800">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-200 hover:text-blue-400 transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                    {user.first_name ? user.first_name[0].toUpperCase() : user.email[0].toUpperCase()}
+                  </div>
+                  <span className="max-w-[120px] truncate">{user.full_name || user.email}</span>
+                </Link>
+                <Badge variant="default" size="sm">
+                  {user.role}
+                </Badge>
+                <button
+                  onClick={handleLogout}
+                  className="p-1.5 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                  title="Sign Out"
+                  aria-label="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 pl-3 border-l border-slate-800">
+                <Link to="/login">
+                  <Button variant="primary" size="sm" leftIcon={<LogIn className="w-3.5 h-3.5" />}>
+                    Sign In
+                  </Button>
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       </header>
@@ -163,7 +220,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                 <span>Security Baseline</span>
               </div>
               <p className="text-xs text-slate-400">
-                UUID Keys, Case-Insensitive Email, HTTP-only JWT ready.
+                JWT in HttpOnly Cookie, Rate-Limiting & Rotating Tokens active.
               </p>
             </div>
           </div>

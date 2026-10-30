@@ -3,12 +3,14 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import Logo from '../components/common/Logo';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { Activity, ArrowRight, BookOpen, Github } from 'lucide-react';
+import { Activity, ArrowRight, BookOpen, Github, LogIn, User as UserIcon } from 'lucide-react';
 import { useHealthQuery } from '../api/health';
+import { useAuth } from '../context/AuthContext';
 
 export const PublicLayout: React.FC = () => {
   const location = useLocation();
   const { data: health } = useHealthQuery(15000);
+  const { user, isAuthenticated } = useAuth();
 
   const isHealthy = health?.status === 'healthy';
 
@@ -64,11 +66,38 @@ export const PublicLayout: React.FC = () => {
               <BookOpen className="w-3.5 h-3.5 text-blue-400" />
               <span>Swagger API Docs</span>
             </a>
-            <Link to="/app/status">
-              <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Launch Dev Console
-              </Button>
-            </Link>
+
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/profile"
+                  className="hidden sm:flex items-center gap-2 text-xs text-slate-300 hover:text-white px-2 py-1"
+                >
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                    {user.first_name ? user.first_name[0].toUpperCase() : user.email[0].toUpperCase()}
+                  </div>
+                  <span className="max-w-[100px] truncate">{user.full_name || user.email}</span>
+                </Link>
+                <Link to="/status">
+                  <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                    Console
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>
