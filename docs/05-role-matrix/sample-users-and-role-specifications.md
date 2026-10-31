@@ -431,3 +431,4 @@ python backend/manage.py seedsampleusers
 - Automatically creates matching `UserProfile` rows with avatar, phone, and biography.
 - Logs a structured `AuditLog` entry with action `SAMPLE_USER_SEEDED`.
 - Skips password updates if the user already exists, or supports `--force-passwords` to reset test passwords to `LogiFlowsDev2026!`.
+

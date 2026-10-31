@@ -40,12 +40,39 @@ class RegisterSerializer(serializers.Serializer):
     Accepts email, password, confirm_password, and optional personal name fields.
     Rejects or ignores any attempt to supply privileged roles.
     """
-    email = serializers.EmailField(max_length=255)
-    password = serializers.CharField(write_only=True, min_length=8)
-    confirm_password = serializers.CharField(write_only=True, min_length=8)
-    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default='')
-    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default='')
-    role = serializers.CharField(required=False, write_only=True)
+    email = serializers.EmailField(
+        max_length=255,
+        help_text='Unique customer email address. Acts as the primary username for authentication.',
+    )
+    password = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        help_text='Account password. Minimum 8 characters; must meet Django security complexity policies.',
+    )
+    confirm_password = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        help_text='Re-type the exact same password for confirmation.',
+    )
+    first_name = serializers.CharField(
+        max_length=150,
+        required=False,
+        allow_blank=True,
+        default='',
+        help_text='Customer given / first name (optional).',
+    )
+    last_name = serializers.CharField(
+        max_length=150,
+        required=False,
+        allow_blank=True,
+        default='',
+        help_text='Customer family / last name (optional).',
+    )
+    role = serializers.CharField(
+        required=False,
+        write_only=True,
+        help_text='Role field is restricted; clients cannot self-assign privileged roles (always CUSTOMER).',
+    )
 
     def validate_email(self, value):
         email_clean = value.strip().lower()
@@ -73,13 +100,24 @@ class RegisterSerializer(serializers.Serializer):
 
 class ActivationSerializer(serializers.Serializer):
     """Serializer for account email activation link redemption."""
-    token = serializers.CharField(required=True, min_length=1)
+    token = serializers.CharField(
+        required=True,
+        min_length=1,
+        help_text='64-character hexadecimal single-use token received via activation email (found in Mailpit at http://localhost:8025 in dev).',
+    )
 
 
 class LoginSerializer(serializers.Serializer):
     """Serializer for user authentication requests."""
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(required=True, write_only=True)
+    email = serializers.EmailField(
+        required=True,
+        help_text='Registered account email address (e.g. alex.mercer@logiflows.admin).',
+    )
+    password = serializers.CharField(
+        required=True,
+        write_only=True,
+        help_text='Account password (default dev password: LogiFlowsDev2026!).',
+    )
 
 
 class RefreshTokenSerializer(serializers.Serializer):
@@ -87,14 +125,32 @@ class RefreshTokenSerializer(serializers.Serializer):
     Serializer for refresh token endpoint.
     Token can be supplied in JSON body or extracted from HttpOnly cookie.
     """
-    refresh = serializers.CharField(required=False, allow_blank=True)
+    refresh = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text='Optional in browsers with HttpOnly cookie. For Swagger UI/curl, paste the refresh token string here.',
+    )
 
 
 class PasswordChangeSerializer(serializers.Serializer):
     """Serializer for authenticated password changes."""
-    current_password = serializers.CharField(required=True, write_only=True)
-    new_password = serializers.CharField(required=True, write_only=True, min_length=8)
-    confirm_password = serializers.CharField(required=True, write_only=True, min_length=8)
+    current_password = serializers.CharField(
+        required=True,
+        write_only=True,
+        help_text='Current active password for identity verification.',
+    )
+    new_password = serializers.CharField(
+        required=True,
+        write_only=True,
+        min_length=8,
+        help_text='New password (min 8 characters, must meet complexity requirements).',
+    )
+    confirm_password = serializers.CharField(
+        required=True,
+        write_only=True,
+        min_length=8,
+        help_text='Must match new_password exactly.',
+    )
 
     def validate(self, attrs):
         if attrs.get('new_password') != attrs.get('confirm_password'):
@@ -104,14 +160,31 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     """Serializer for requesting a password reset email."""
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(
+        required=True,
+        help_text='Account email address to receive password reset link (dispatched to Mailpit at http://localhost:8025).',
+    )
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Serializer for confirming a password reset via token."""
-    token = serializers.CharField(required=True, min_length=1)
-    new_password = serializers.CharField(required=True, write_only=True, min_length=8)
-    confirm_password = serializers.CharField(required=True, write_only=True, min_length=8)
+    token = serializers.CharField(
+        required=True,
+        min_length=1,
+        help_text='64-character hexadecimal single-use token received in the reset email.',
+    )
+    new_password = serializers.CharField(
+        required=True,
+        write_only=True,
+        min_length=8,
+        help_text='New password (min 8 characters, must meet complexity requirements).',
+    )
+    confirm_password = serializers.CharField(
+        required=True,
+        write_only=True,
+        min_length=8,
+        help_text='Must match new_password exactly.',
+    )
 
     def validate(self, attrs):
         if attrs.get('new_password') != attrs.get('confirm_password'):
@@ -121,9 +194,34 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for user profile updates."""
-    phone = serializers.CharField(source='profile.phone', required=False, allow_blank=True)
-    avatar_url = serializers.URLField(source='profile.avatar_url', required=False, allow_blank=True)
-    bio = serializers.CharField(source='profile.bio', required=False, allow_blank=True)
+    first_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text='User given / first name.',
+    )
+    last_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text='User family / last name.',
+    )
+    phone = serializers.CharField(
+        source='profile.phone',
+        required=False,
+        allow_blank=True,
+        help_text='Contact phone number in international or local format (e.g. +1-555-010-0001).',
+    )
+    avatar_url = serializers.URLField(
+        source='profile.avatar_url',
+        required=False,
+        allow_blank=True,
+        help_text='Public HTTP or HTTPS URL pointing to user profile photo.',
+    )
+    bio = serializers.CharField(
+        source='profile.bio',
+        required=False,
+        allow_blank=True,
+        help_text='Brief professional notes, bio, or role description.',
+    )
 
     class Meta:
         model = User

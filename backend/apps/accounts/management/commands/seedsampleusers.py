@@ -184,3 +184,4 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f'\nFinished seeding sample users: {created_count} created, {updated_count} existing.'
         ))
+
