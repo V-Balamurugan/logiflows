@@ -284,7 +284,11 @@ class LoginView(APIView):
                     OpenApiExample(
                         name='Successful Login Response',
                         value={
+                            'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
                             'access': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                            'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                            'token_type': 'Bearer',
+                            'expires_in': 900,
                             'user': {
                                 'id': '8190744b-ffc6-44ab-ad99-71ae7494f453',
                                 'email': 'alex.mercer@logiflows.admin',
@@ -373,7 +377,11 @@ class LoginView(APIView):
 
         response = Response(
             {
+                'token': access_token,
                 'access': access_token,
+                'access_token': access_token,
+                'token_type': 'Bearer',
+                'expires_in': 900,
                 'user': user_data,
             },
             status=status.HTTP_200_OK,
@@ -414,7 +422,11 @@ class RefreshTokenView(APIView):
                     OpenApiExample(
                         name='Refresh Success Response',
                         value={
+                            'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
                             'access': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                            'access_token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                            'token_type': 'Bearer',
+                            'expires_in': 900,
                             'user': {
                                 'id': '8190744b-ffc6-44ab-ad99-71ae7494f453',
                                 'email': 'alex.mercer@logiflows.admin',
@@ -457,7 +469,11 @@ class RefreshTokenView(APIView):
 
         response = Response(
             {
+                'token': new_access_token,
                 'access': new_access_token,
+                'access_token': new_access_token,
+                'token_type': 'Bearer',
+                'expires_in': 900,
                 'user': user_data,
             },
             status=status.HTTP_200_OK,

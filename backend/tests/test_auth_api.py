@@ -329,3 +329,92 @@ class TestAuthAPIEndpoints:
         prof_res = self.client.get(reverse('users-me-profile'))
         assert prof_res.status_code == status.HTTP_200_OK
         assert prof_res.data['phone'] == '+1122334455'
+
+    def test_login_response_payload_tokens(self):
+        user = User.objects.create_user(
+            email='tokenformat@logiflows.test',
+            password='Password2026!',
+            is_active=True,
+        )
+        UserProfile.objects.create(user=user)
+
+        res = self.client.post(
+            reverse('auth-login'),
+            {'email': 'tokenformat@logiflows.test', 'password': 'Password2026!'},
+            format='json',
+        )
+        assert res.status_code == status.HTTP_200_OK
+        assert 'token' in res.data
+        assert 'access' in res.data
+        assert 'access_token' in res.data
+        assert res.data['token_type'] == 'Bearer'
+        assert res.data['expires_in'] == 900
+        assert res.data['token'] == res.data['access']
+
+    def test_login_direct_alias_endpoints(self):
+        user = User.objects.create_user(
+            email='aliaslogin@logiflows.test',
+            password='Password2026!',
+            is_active=True,
+        )
+        UserProfile.objects.create(user=user)
+
+        # /api/v1/login/
+        res1 = self.client.post(
+            reverse('login-direct'),
+            {'email': 'aliaslogin@logiflows.test', 'password': 'Password2026!'},
+            format='json',
+        )
+        assert res1.status_code == status.HTTP_200_OK
+        assert 'token' in res1.data
+
+        # /login/ (root alias)
+        res2 = self.client.post(
+            reverse('root-login'),
+            {'email': 'aliaslogin@logiflows.test', 'password': 'Password2026!'},
+            format='json',
+        )
+        assert res2.status_code == status.HTTP_200_OK
+        assert 'token' in res2.data
+
+    def test_flexible_jwt_auth_header_formats(self):
+        user = User.objects.create_user(
+            email='flexauth@logiflows.test',
+            password='Password2026!',
+            is_active=True,
+        )
+        UserProfile.objects.create(user=user)
+
+        login_res = self.client.post(
+            reverse('auth-login'),
+            {'email': 'flexauth@logiflows.test', 'password': 'Password2026!'},
+            format='json',
+        )
+        token = login_res.data['token']
+
+        # 1. Bearer <token>
+        res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=f'Bearer {token}')
+        assert res.status_code == status.HTTP_200_OK
+
+        # 2. Token <token>
+        res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=f'Token {token}')
+        assert res.status_code == status.HTTP_200_OK
+
+        # 3. Accidental duplicate: Bearer Bearer <token>
+        res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=f'Bearer Bearer {token}')
+        assert res.status_code == status.HTTP_200_OK
+
+        # 4. Raw token without prefix: <token>
+        res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=token)
+        assert res.status_code == status.HTTP_200_OK
+
+        # 5. X-Auth-Token header
+        res = self.client.get(reverse('users-me'), HTTP_X_AUTH_TOKEN=token)
+        assert res.status_code == status.HTTP_200_OK
+
+    def test_allow_any_endpoint_with_invalid_token(self):
+        """AllowAny endpoints should not crash with 401 when an invalid/expired token is sent."""
+        res = self.client.get(reverse('health-check'), HTTP_AUTHORIZATION='Bearer totally_invalid_token')
+        assert res.status_code == status.HTTP_200_OK
+        assert res.data['status'] == 'healthy'
+

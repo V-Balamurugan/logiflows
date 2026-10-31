@@ -64,7 +64,7 @@ All 4 containers (`logiflows_db`, `logiflows_backend`, `logiflows_frontend`, `lo
 
 ---
 
-## 🧪 Automated Testing (134 / 134 Passing)
+## 🧪 Automated Testing (138 / 138 Passing)
 
 ### Backend Test Suite (pytest)
 ```bash
@@ -74,7 +74,7 @@ pytest backend -v --cov=apps.accounts --cov-report=term-missing
 # Inside Docker:
 docker compose exec backend pytest -v --cov=apps.accounts
 ```
-*Result: 67 / 67 tests passed in 2.15s (93% test coverage on `apps.accounts`).*
+*Result: 71 / 71 tests passed in 2.25s (94% test coverage on `apps.accounts`).*
 
 ### Frontend Component & Unit Tests (Vitest)
 ```bash
