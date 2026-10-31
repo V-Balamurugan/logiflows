@@ -53,3 +53,55 @@ class TestManagementCommands:
                 password='123',
                 stdout=out,
             )
+
+    def test_seedsampleusers_creates_all_roles(self):
+        out = StringIO()
+        call_command('seedsampleusers', stdout=out)
+        output = out.getvalue()
+
+        assert 'Finished seeding sample users: 6 created, 0 existing' in output
+
+        expected_roles = {
+            'alex.mercer@logiflows.admin': (UserRole.PLATFORM_ADMIN, True, True),
+            'sarah.jenkins@swiftpost.com': (UserRole.ORGANIZATION_OWNER, False, False),
+            'marcus.vance@swiftpost.com': (UserRole.ORGANIZATION_ADMIN, False, False),
+            'elena.rostova@swiftpost.com': (UserRole.BRANCH_MANAGER, False, False),
+            'dave.miller@swiftpost.com': (UserRole.EMPLOYEE, False, False),
+            'emma.watson@apexsupplies.com': (UserRole.CUSTOMER, False, False),
+        }
+
+        for email, (role, is_staff, is_superuser) in expected_roles.items():
+            user = User.objects.get(email=email)
+            assert user.role == role
+            assert user.is_staff == is_staff
+            assert user.is_superuser == is_superuser
+            assert user.is_active is True
+            assert user.check_password('LogiFlowsDev2026!')
+            assert hasattr(user, 'profile')
+            assert user.profile.phone.startswith('+1-555-010-')
+            assert bool(user.profile.avatar_url)
+            assert bool(user.profile.bio)
+
+        logs = AuditLog.objects.filter(action='SAMPLE_USER_SEEDED')
+        assert logs.count() == 6
+
+    def test_seedsampleusers_idempotency(self):
+        call_command('seedsampleusers')
+        out = StringIO()
+        call_command('seedsampleusers', stdout=out)
+        output = out.getvalue()
+        assert 'Finished seeding sample users: 0 created, 6 existing' in output
+        assert User.objects.count() == 6
+
+    def test_seedsampleusers_force_passwords(self):
+        call_command('seedsampleusers')
+        user = User.objects.get(email='alex.mercer@logiflows.admin')
+        user.set_password('TemporaryPassword999!')
+        user.save()
+        assert user.check_password('TemporaryPassword999!')
+
+        out = StringIO()
+        call_command('seedsampleusers', force_passwords=True, password='UpdatedPassword2026!', stdout=out)
+        user.refresh_from_db()
+        assert user.check_password('UpdatedPassword2026!')
+

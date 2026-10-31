@@ -12,6 +12,11 @@ LogiFlows implements an enterprise multi-tenant Role-Based Access Control (RBAC)
 5. **EMPLOYEE**: Operational staff, dispatchers, hub operators, and drivers executing custody transfers and delivery legs.
 6. **CUSTOMER**: Consignors, consignees, and public users self-registering on the platform to book deliveries, track parcels, and view personal profiles. Default role for all self-registrations.
 
+> 💡 **Detailed Role Persona & Sample User Guide:**  
+> For full personas, database records, test credentials, and UI/API access limits across all 6 roles, consult [`sample-users-and-role-specifications.md`](file:///docs/05-role-matrix/sample-users-and-role-specifications.md).  
+> To seed all 6 sample users in development/testing with one command: `python backend/manage.py seedsampleusers`.
+
+
 ## 3. Implemented DRF Permission Classes (`apps.accounts.permissions`)
 - `IsPlatformAdmin`: Grants access only if `user.role == UserRole.PLATFORM_ADMIN` and `user.is_active`.
 - `IsOrganizationOwner`: Grants access if `user.role == UserRole.ORGANIZATION_OWNER`.

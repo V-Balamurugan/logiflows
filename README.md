@@ -64,7 +64,7 @@ All 4 containers (`logiflows_db`, `logiflows_backend`, `logiflows_frontend`, `lo
 
 ---
 
-## 🧪 Automated Testing (131 / 131 Passing)
+## 🧪 Automated Testing (134 / 134 Passing)
 
 ### Backend Test Suite (pytest)
 ```bash
@@ -74,7 +74,7 @@ pytest backend -v --cov=apps.accounts --cov-report=term-missing
 # Inside Docker:
 docker compose exec backend pytest -v --cov=apps.accounts
 ```
-*Result: 64 / 64 tests passed in 2.08s (93% test coverage on `apps.accounts`).*
+*Result: 67 / 67 tests passed in 2.15s (93% test coverage on `apps.accounts`).*
 
 ### Frontend Component & Unit Tests (Vitest)
 ```bash
@@ -101,6 +101,7 @@ Comprehensive engineering specifications are organized in the [`docs/`](file:///
 - [02 - Software Requirements Specification (SRS)](file:///docs/02-srs-requirements/software-requirements-specification.md)
 - [04 - Entity-Relationship Diagram](file:///docs/04-database-er/entity-relationship-diagram.md)
 - [05 - Role-Based Access Control Matrix](file:///docs/05-role-matrix/role-permission-matrix.md)
+- [05 - Sample Users & Role Specifications Matrix](file:///docs/05-role-matrix/sample-users-and-role-specifications.md)
 - [06 - API Design Conventions](file:///docs/06-api-conventions/api-conventions.md)
 
 ---
