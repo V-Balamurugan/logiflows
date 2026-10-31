@@ -193,7 +193,9 @@ AUTH_COOKIE_MAX_AGE = int(os.getenv('AUTH_COOKIE_MAX_AGE', 60 * 60 * 24 * 7))  #
 # Email Delivery Configuration (Mailpit in local dev, SMTP in staging/prod)
 EMAIL_BACKEND = os.getenv(
     'DJANGO_EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
+    'django.core.mail.backends.smtp.EmailBackend'
+    if os.getenv('EMAIL_HOST') or not DEBUG
+    else 'django.core.mail.backends.console.EmailBackend'
 )
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
 if EMAIL_HOST in ('mailpit', 'localhost', '127.0.0.1'):

@@ -56,6 +56,28 @@ class TestSecurityAndHardening:
         assert res_exist.status_code == status.HTTP_200_OK
         assert res_nonexist.data == res_exist.data
 
+    def test_login_user_enumeration_resistance(self):
+        """Login attempts with non-existent email vs incorrect password for existing account must return identical errors."""
+        res_nonexist = self.client.post(
+            reverse('auth-login'),
+            {'email': 'nobody_exists@logiflows.test', 'password': 'WrongPassword123!'},
+            format='json',
+        )
+        User.objects.create_user(
+            email='real_user@logiflows.test',
+            password='RealPassword123!',
+            is_active=True,
+        )
+        res_exist_wrong_pass = self.client.post(
+            reverse('auth-login'),
+            {'email': 'real_user@logiflows.test', 'password': 'WrongPassword123!'},
+            format='json',
+        )
+        assert res_nonexist.status_code == status.HTTP_401_UNAUTHORIZED
+        assert res_exist_wrong_pass.status_code == status.HTTP_401_UNAUTHORIZED
+        assert res_nonexist.data == res_exist_wrong_pass.data
+        assert res_nonexist.data['error']['code'] == 'INVALID_CREDENTIALS'
+
     def test_cookie_flags_security(self):
         user = User.objects.create_user(
             email='cookie_security@logiflows.test',

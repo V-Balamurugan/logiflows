@@ -204,6 +204,27 @@ class TestAuthServices:
         user.refresh_from_db()
         assert user.check_password('NewSecurePassword2026!')
 
+    def test_change_password_revokes_outstanding_refresh_tokens(self):
+        user = register_customer(
+            email='revokepw@example.com',
+            password='OldSecurePassword2026!',
+        )
+        user.is_active = True
+        user.save()
+
+        auth_user, access_token, refresh_token = authenticate_user(
+            'revokepw@example.com',
+            'OldSecurePassword2026!',
+        )
+        assert refresh_token
+
+        # Change password
+        change_password(user, 'OldSecurePassword2026!', 'NewSecurePassword2026!')
+
+        # The previous refresh token must now be rejected/blacklisted
+        with pytest.raises(TokenInvalidOrExpiredException):
+            refresh_access_token(refresh_token)
+
     def test_password_reset_flow(self):
         mail.outbox.clear()
         user = register_customer(
@@ -234,3 +255,29 @@ class TestAuthServices:
         # Cannot reuse reset token
         with pytest.raises(TokenInvalidOrExpiredException):
             confirm_password_reset(reset_token, 'AnotherPassword2026!')
+
+    def test_password_reset_revokes_outstanding_refresh_tokens(self):
+        mail.outbox.clear()
+        user = register_customer(
+            email='resetrevoke@example.com',
+            password='OldSecurePassword2026!',
+        )
+        user.is_active = True
+        user.save()
+
+        auth_user, access_token, refresh_token = authenticate_user(
+            'resetrevoke@example.com',
+            'OldSecurePassword2026!',
+        )
+        assert refresh_token
+
+        request_password_reset('resetrevoke@example.com')
+        email_body = mail.outbox[-1].body
+        reset_token = email_body.split('token=')[1].split('\n')[0].strip()
+
+        confirm_password_reset(reset_token, 'BrandNewPassword2026!')
+
+        # The previous refresh token must now be rejected/blacklisted
+        with pytest.raises(TokenInvalidOrExpiredException):
+            refresh_access_token(refresh_token)
+

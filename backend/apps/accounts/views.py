@@ -862,3 +862,24 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        summary='Update current user profile attributes',
+        description='Updates profile-specific attributes (`phone`, `avatar_url`, `bio`) for the authenticated user.',
+        request=UserProfileSerializer,
+        responses={
+            200: OpenApiResponse(response=UserProfileSerializer, description='Profile updated successfully.'),
+            400: OpenApiResponse(description='Validation error.'),
+            401: OpenApiResponse(description='Authentication required.'),
+        },
+        tags=['02 - User Profile & Identity'],
+    )
+    def patch(self, request):
+        profile = getattr(request.user, 'profile', None)
+        if not profile:
+            from apps.accounts.models import UserProfile
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

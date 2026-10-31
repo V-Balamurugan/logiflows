@@ -8,6 +8,7 @@ from .auth_service import (
     refresh_access_token,
     revoke_refresh_token,
     change_password,
+    revoke_all_user_tokens,
     request_password_reset,
     confirm_password_reset,
 )
@@ -27,6 +28,7 @@ __all__ = [
     'refresh_access_token',
     'revoke_refresh_token',
     'change_password',
+    'revoke_all_user_tokens',
     'request_password_reset',
     'confirm_password_reset',
 ]

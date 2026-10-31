@@ -278,6 +278,27 @@ def revoke_refresh_token(
     )
 
 
+def revoke_all_user_tokens(user: User) -> int:
+    """
+    Revoke (blacklist) all outstanding refresh tokens for the given user.
+    Called when a user changes password or completes password reset to ensure
+    all active sessions/refresh tokens are immediately invalidated.
+    """
+    try:
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+        outstanding = OutstandingToken.objects.filter(user=user)
+        revoked_count = 0
+        for token in outstanding:
+            _, created = BlacklistedToken.objects.get_or_create(token=token)
+            if created:
+                revoked_count += 1
+        logger.info(f"Revoked {revoked_count} outstanding refresh tokens for user {user.email}")
+        return revoked_count
+    except Exception as exc:
+        logger.warning(f"Could not revoke all tokens for user {user.email}: {exc}")
+        return 0
+
+
 def change_password(
     user: User,
     current_password: str,
@@ -307,6 +328,9 @@ def change_password(
 
     user.set_password(new_password)
     user.save(update_fields=['password', 'updated_at'])
+
+    # Invalidate all outstanding refresh tokens for this user
+    revoke_all_user_tokens(user)
 
     log_audit_event(
         action='AUTH_PASSWORD_CHANGE',
@@ -387,6 +411,9 @@ def confirm_password_reset(
     user.failed_login_attempts = 0
     user.lockout_until = None
     user.save(update_fields=['password', 'failed_login_attempts', 'lockout_until', 'updated_at'])
+
+    # Invalidate all outstanding refresh tokens for this user
+    revoke_all_user_tokens(user)
 
     log_audit_event(
         action='AUTH_PASSWORD_RESET_CONFIRM',
