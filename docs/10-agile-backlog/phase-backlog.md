@@ -13,9 +13,9 @@
 ---
 
 ## Future Phase Roadmap (High-Level)
-- **Phase 01**: Multi-Tenant Organization Management & Authentication (JWT, Tenant Context Middleware, User Profiles).
-- **Phase 02**: Fleet, Carriers & Driver Telematics (Vehicle registries, driver mobile ePOD portal, telemetry webhooks).
-- **Phase 03**: Freight Orders, Waybills & Shipment Finite State Machine (Dispatches, real-time milestone transitions).
-- **Phase 04**: Contract Rate Cards, Invoicing & Billing Engine (Automated line-item billing, dispute workflow).
-- **Phase 05**: Real-Time Alerts, Geofencing & Exception Handling (Push notifications, delay prediction).
-- **Phase 06**: Production Hardening, Load Testing & Release Gate.
+- **Phase 01**: Multi-Tenant Organization Management & Authentication (DONE).
+- **Phase 02**: Organization & Tenant Isolation, Branches, Serviceability, Employees & Dashboards (IN PROGRESS).
+- **Phase 03**: Parcel Booking & Consignment Waybill.
+- **Phase 04**: Fleet & Vehicle Master Management (Vehicle registries, capacities, telematics - logged in backlog per INCLUDE_FLEET=false).
+- **Phase 05**: QR Code Custody Transfer Engine.
+- **Phase 06**: Branch & Hub Warehouse Staging.

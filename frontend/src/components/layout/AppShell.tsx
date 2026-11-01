@@ -12,6 +12,8 @@ import {
   User as UserIcon,
   LogOut,
   LogIn,
+  Building,
+  ShieldAlert,
 } from 'lucide-react';
 import Logo from '../common/Logo';
 import Badge from '../ui/Badge';
@@ -62,6 +64,37 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             icon: <UserIcon className="w-4 h-4" />,
             active: location.pathname === '/profile',
           },
+          ...(user?.role === 'PLATFORM_ADMIN'
+            ? [
+                {
+                  to: '/admin/organizations',
+                  label: 'Tenant Approvals',
+                  icon: <ShieldAlert className="w-4 h-4" />,
+                  active: location.pathname === '/admin/organizations',
+                  badge: 'Admin',
+                },
+              ]
+            : []),
+          ...(user?.role === 'ORGANIZATION_OWNER' || user?.role === 'ORGANIZATION_ADMIN'
+            ? [
+                {
+                  to: '/organization/settings',
+                  label: 'Organization Profile',
+                  icon: <Building className="w-4 h-4" />,
+                  active: location.pathname === '/organization/settings',
+                },
+              ]
+            : []),
+          ...(user?.role === 'CUSTOMER'
+            ? [
+                {
+                  to: '/register-organization',
+                  label: 'Register Organization',
+                  icon: <Building className="w-4 h-4" />,
+                  active: location.pathname === '/register-organization',
+                },
+              ]
+            : []),
         ]
       : []),
   ];
@@ -75,6 +108,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       crumbs.push({ label: 'Enterprise Design System', path: '/design-system' });
     } else if (location.pathname === '/profile') {
       crumbs.push({ label: 'Account Profile & Security', path: '/profile' });
+    } else if (location.pathname === '/admin/organizations') {
+      crumbs.push({ label: 'Platform Tenant Queue', path: '/admin/organizations' });
+    } else if (location.pathname === '/organization/settings') {
+      crumbs.push({ label: 'Organization Profile & Settings', path: '/organization/settings' });
+    } else if (location.pathname === '/register-organization') {
+      crumbs.push({ label: 'Register Organization', path: '/register-organization' });
     } else if (location.pathname !== '/') {
       crumbs.push({ label: location.pathname.replace('/', ''), path: location.pathname });
     }

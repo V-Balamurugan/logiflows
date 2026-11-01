@@ -42,9 +42,12 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
 
-    # LogiFlows Core & Accounts Apps
+    # LogiFlows Core & Domain Apps
     'apps.core.apps.CoreConfig',
     'apps.accounts.apps.AccountsConfig',
+    'apps.organizations.apps.OrganizationsConfig',
+    'apps.branches.apps.BranchesConfig',
+    'apps.employees.apps.EmployeesConfig',
 ]
 
 # Custom User Model

@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import PublicLayout from '../layouts/PublicLayout';
 import AppShell from '../components/layout/AppShell';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
+import RoleGuard from '../components/auth/RoleGuard';
 
 // Public Pages
 import LandingPage from '../pages/LandingPage';
@@ -21,6 +22,9 @@ import UnauthorizedPage from '../pages/auth/UnauthorizedPage';
 
 // Authenticated Pages
 import ProfilePage from '../pages/ProfilePage';
+import RegisterOrganizationPage from '../pages/organization/RegisterOrganizationPage';
+import PlatformAdminOrgQueuePage from '../pages/admin/PlatformAdminOrgQueuePage';
+import OrganizationSettingsPage from '../pages/organization/OrganizationSettingsPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -56,6 +60,42 @@ export const AppRoutes: React.FC = () => {
             <AppShell>
               <ProfilePage />
             </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Organization Lifecycle & Management Pages */}
+      <Route
+        path="/register-organization"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <RegisterOrganizationPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/organizations"
+        element={
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={['PLATFORM_ADMIN']}>
+              <AppShell>
+                <PlatformAdminOrgQueuePage />
+              </AppShell>
+            </RoleGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/organization/settings"
+        element={
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={['ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN']}>
+              <AppShell>
+                <OrganizationSettingsPage />
+              </AppShell>
+            </RoleGuard>
           </ProtectedRoute>
         }
       />
