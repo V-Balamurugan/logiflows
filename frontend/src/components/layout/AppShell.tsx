@@ -16,6 +16,7 @@ import {
   ShieldAlert,
   GitBranch,
   MapPin,
+  Users,
 } from 'lucide-react';
 import Logo from '../common/Logo';
 import Badge from '../ui/Badge';
@@ -79,6 +80,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
                   label: 'Branches & Hubs',
                   icon: <GitBranch className="w-4 h-4" />,
                   active: location.pathname.startsWith('/branches'),
+                },
+                {
+                  to: '/employees',
+                  label: 'Employees & Staff',
+                  icon: <Users className="w-4 h-4" />,
+                  active: location.pathname.startsWith('/employees'),
                 },
               ]
             : []),

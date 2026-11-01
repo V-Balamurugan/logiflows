@@ -28,6 +28,8 @@ import OrganizationSettingsPage from '../pages/organization/OrganizationSettings
 import BranchListPage from '../pages/branch/BranchListPage';
 import BranchDetailPage from '../pages/branch/BranchDetailPage';
 import ServiceabilityCheckerPage from '../pages/branch/ServiceabilityCheckerPage';
+import EmployeeListPage from '../pages/employee/EmployeeListPage';
+import EmployeeDetailPage from '../pages/employee/EmployeeDetailPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -130,6 +132,28 @@ export const AppRoutes: React.FC = () => {
           <AppShell>
             <ServiceabilityCheckerPage />
           </AppShell>
+        }
+      />
+
+      {/* Employee & RBAC Management */}
+      <Route
+        path="/employees"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <EmployeeListPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees/:id"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <EmployeeDetailPage />
+            </AppShell>
+          </ProtectedRoute>
         }
       />
 
