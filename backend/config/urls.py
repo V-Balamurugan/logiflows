@@ -5,6 +5,7 @@ Defines admin, API v1 namespace, and OpenAPI / Swagger documentation endpoints.
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
+from apps.accounts.views import LoginView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -42,6 +43,10 @@ urlpatterns = [
 
     # Core API namespace /api/v1/
     path('api/v1/', include('apps.core.urls')),
+    path('api/v1/', include('apps.accounts.urls')),
+
+    # Direct Convenience Login Alias
+    path('login/', LoginView.as_view(), name='root-login'),
 
     # OpenAPI Schema & Interactive Documentation
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),

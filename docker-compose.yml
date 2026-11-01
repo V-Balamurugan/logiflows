@@ -37,11 +37,19 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
       CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000
+      DJANGO_EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+      EMAIL_HOST: mailpit
+      EMAIL_PORT: 1025
+      FRONTEND_URL: http://localhost:3000
+    volumes:
+      - ./backend:/app
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health/ || exit 1"]
       interval: 10s
@@ -68,6 +76,16 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    networks:
+      - logiflows_net
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: logiflows_mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     networks:
       - logiflows_net
 

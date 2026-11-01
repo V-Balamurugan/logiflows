@@ -34,7 +34,7 @@ def custom_exception_handler(exc, context):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    # Determine structured error code from HTTP status code or exception class
+    # Determine structured error code from HTTP status code or custom uppercase exception code
     code_map = {
         status.HTTP_400_BAD_REQUEST: 'VALIDATION_ERROR',
         status.HTTP_401_UNAUTHORIZED: 'AUTHENTICATION_REQUIRED',
@@ -44,7 +44,11 @@ def custom_exception_handler(exc, context):
         status.HTTP_429_TOO_MANY_REQUESTS: 'THROTTLED',
         status.HTTP_503_SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
     }
-    error_code = code_map.get(response.status_code, 'API_ERROR')
+    custom_code = getattr(exc, 'default_code', None) or getattr(exc, 'code', None)
+    if custom_code and isinstance(custom_code, str) and custom_code.isupper():
+        error_code = custom_code
+    else:
+        error_code = code_map.get(response.status_code, 'API_ERROR')
 
     message = 'Request processing failed.'
     details = response.data
