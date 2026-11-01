@@ -97,6 +97,20 @@ class CanManageOrganization(permissions.BasePermission):
                 is_active=True,
             ).exists()
 
+        # Action on membership endpoints (e.g. deactivate, activate, update membership)
+        action_name = getattr(view, 'action', '')
+        if action_name in [
+            'deactivate_membership_action',
+            'activate_membership_action',
+            'update_membership',
+        ]:
+            return OrganizationMembership.objects.filter(
+                user=user,
+                organization=org,
+                role__in=[UserRole.ORGANIZATION_OWNER, UserRole.ORGANIZATION_ADMIN],
+                is_active=True,
+            ).exists()
+
         # Update access: Owner only
         if request.method in ['PATCH', 'PUT']:
             return OrganizationMembership.objects.filter(

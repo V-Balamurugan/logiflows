@@ -13,6 +13,7 @@ from .serializers import (
     OrganizationUpdateSerializer,
     OrganizationActionReasonSerializer,
     OrganizationMembershipSerializer,
+    OrganizationMembershipUpdateSerializer,
 )
 from .permissions import IsPlatformAdmin, CanManageOrganization
 from .services import (
@@ -20,6 +21,9 @@ from .services import (
     approve_organization,
     reject_organization,
     suspend_organization,
+    update_membership_role,
+    deactivate_membership,
+    activate_membership,
 )
 from apps.accounts.models import UserRole
 from apps.accounts.services.audit_service import get_client_ip, get_client_user_agent
@@ -199,6 +203,132 @@ class OrganizationViewSet(
                 'message': f"Organization '{suspended_org.code}' has been suspended.",
                 'organization': OrganizationDetailSerializer(suspended_org).data,
             },
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        summary='List organization memberships',
+        description='Returns all members belonging to this organization.',
+        responses={200: OrganizationMembershipSerializer(many=True)},
+    )
+    @action(detail=True, methods=['get'], url_path='memberships')
+    def list_memberships(self, request, pk=None):
+        organization = self.get_object()
+        memberships = OrganizationMembership.objects.filter(
+            organization=organization,
+        ).select_related('user', 'branch').order_by('-created_at')
+
+        page = self.paginate_queryset(memberships)
+        if page is not None:
+            serializer = OrganizationMembershipSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = OrganizationMembershipSerializer(memberships, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary='Update membership role or branch assignment',
+        description='Update a member role or assigned branch. Only owner can appoint admins.',
+        request=OrganizationMembershipUpdateSerializer,
+        responses={200: OrganizationMembershipSerializer},
+    )
+    @action(detail=True, methods=['patch'], url_path=r'memberships/(?P<membership_id>[^/.]+)')
+    def update_membership(self, request, pk=None, membership_id=None):
+        organization = self.get_object()
+        try:
+            membership = OrganizationMembership.objects.get(
+                id=membership_id,
+                organization=organization,
+            )
+        except OrganizationMembership.DoesNotExist:
+            return Response(
+                {'error': {'code': 'NOT_FOUND', 'message': 'Membership record not found.'}},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = OrganizationMembershipUpdateSerializer(
+            instance=membership,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+
+        new_role = serializer.validated_data.get('role', membership.role)
+        new_branch = serializer.validated_data.get('branch', membership.branch)
+
+        updated_membership = update_membership_role(
+            actor=request.user,
+            membership=membership,
+            new_role=new_role,
+            new_branch=new_branch,
+            ip_address=get_client_ip(request),
+            user_agent=get_client_user_agent(request),
+        )
+
+        return Response(
+            OrganizationMembershipSerializer(updated_membership).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        summary='Deactivate organization member',
+        description='Deactivate a member within this organization. Deactivated members cannot access tenant context.',
+        responses={200: OrganizationMembershipSerializer},
+    )
+    @action(detail=True, methods=['post'], url_path=r'memberships/(?P<membership_id>[^/.]+)/deactivate')
+    def deactivate_membership_action(self, request, pk=None, membership_id=None):
+        organization = self.get_object()
+        try:
+            membership = OrganizationMembership.objects.get(
+                id=membership_id,
+                organization=organization,
+            )
+        except OrganizationMembership.DoesNotExist:
+            return Response(
+                {'error': {'code': 'NOT_FOUND', 'message': 'Membership record not found.'}},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        deactivated = deactivate_membership(
+            actor=request.user,
+            membership=membership,
+            ip_address=get_client_ip(request),
+            user_agent=get_client_user_agent(request),
+        )
+
+        return Response(
+            OrganizationMembershipSerializer(deactivated).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        summary='Activate organization member',
+        description='Reactivate a member within this organization.',
+        responses={200: OrganizationMembershipSerializer},
+    )
+    @action(detail=True, methods=['post'], url_path=r'memberships/(?P<membership_id>[^/.]+)/activate')
+    def activate_membership_action(self, request, pk=None, membership_id=None):
+        organization = self.get_object()
+        try:
+            membership = OrganizationMembership.objects.get(
+                id=membership_id,
+                organization=organization,
+            )
+        except OrganizationMembership.DoesNotExist:
+            return Response(
+                {'error': {'code': 'NOT_FOUND', 'message': 'Membership record not found.'}},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        activated = activate_membership(
+            actor=request.user,
+            membership=membership,
+            ip_address=get_client_ip(request),
+            user_agent=get_client_user_agent(request),
+        )
+
+        return Response(
+            OrganizationMembershipSerializer(activated).data,
             status=status.HTTP_200_OK,
         )
 

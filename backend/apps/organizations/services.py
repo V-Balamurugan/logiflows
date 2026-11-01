@@ -315,3 +315,143 @@ def suspend_organization(
     )
 
     return organization
+
+
+@transaction.atomic
+def update_membership_role(
+    actor: User,
+    membership: OrganizationMembership,
+    new_role: str,
+    new_branch=None,
+    ip_address: Optional[str] = None,
+    user_agent: str = '',
+) -> OrganizationMembership:
+    """
+    Update membership role and/or assigned branch with strict role-hierarchy checks:
+    - Only ORGANIZATION_OWNER (or PLATFORM_ADMIN) can assign ORGANIZATION_ADMIN.
+    - ORGANIZATION_OWNER or ORGANIZATION_ADMIN can assign BRANCH_MANAGER or EMPLOYEE.
+    - The active ORGANIZATION_OWNER role cannot be modified via standard update.
+    """
+    if actor.role != UserRole.PLATFORM_ADMIN:
+        actor_membership = OrganizationMembership.objects.filter(
+            user=actor,
+            organization=membership.organization,
+            is_active=True,
+            role__in=[UserRole.ORGANIZATION_OWNER, UserRole.ORGANIZATION_ADMIN],
+        ).first()
+
+        if not actor_membership:
+            raise PermissionDenied('Administrative privileges required in this organization.')
+
+        # If target is owner, block modification
+        if membership.role == UserRole.ORGANIZATION_OWNER and new_role != UserRole.ORGANIZATION_OWNER:
+            raise PermissionDenied('Organization Owner role cannot be modified. Ownership transfer required.')
+
+        # Only owner can assign ORGANIZATION_ADMIN
+        if new_role == UserRole.ORGANIZATION_ADMIN and actor_membership.role != UserRole.ORGANIZATION_OWNER:
+            raise PermissionDenied('Only the Organization Owner can appoint Organization Administrators.')
+
+    old_role = membership.role
+    membership.role = new_role
+    if new_branch is not None:
+        membership.branch = new_branch
+    membership.save(update_fields=['role', 'branch', 'updated_at'])
+
+    log_audit_event(
+        action='MEMBERSHIP_ROLE_UPDATED',
+        actor=actor,
+        target_type='OrganizationMembership',
+        target_id=str(membership.id),
+        ip_address=ip_address,
+        user_agent=user_agent,
+        metadata={
+            'organization_id': str(membership.organization_id),
+            'target_user_id': str(membership.user_id),
+            'old_role': old_role,
+            'new_role': new_role,
+        },
+    )
+
+    return membership
+
+
+@transaction.atomic
+def deactivate_membership(
+    actor: User,
+    membership: OrganizationMembership,
+    ip_address: Optional[str] = None,
+    user_agent: str = '',
+) -> OrganizationMembership:
+    """
+    Deactivate an organization membership.
+    Owners cannot be deactivated.
+    """
+    if membership.role == UserRole.ORGANIZATION_OWNER:
+        raise ValidationError('The Organization Owner cannot be deactivated.')
+
+    if actor.role != UserRole.PLATFORM_ADMIN:
+        has_admin = OrganizationMembership.objects.filter(
+            user=actor,
+            organization=membership.organization,
+            is_active=True,
+            role__in=[UserRole.ORGANIZATION_OWNER, UserRole.ORGANIZATION_ADMIN],
+        ).exists()
+        if not has_admin:
+            raise PermissionDenied('Administrative privileges required to deactivate members.')
+
+    membership.is_active = False
+    membership.save(update_fields=['is_active', 'updated_at'])
+
+    log_audit_event(
+        action='MEMBERSHIP_DEACTIVATED',
+        actor=actor,
+        target_type='OrganizationMembership',
+        target_id=str(membership.id),
+        ip_address=ip_address,
+        user_agent=user_agent,
+        metadata={
+            'organization_id': str(membership.organization_id),
+            'target_user_id': str(membership.user_id),
+        },
+    )
+
+    return membership
+
+
+@transaction.atomic
+def activate_membership(
+    actor: User,
+    membership: OrganizationMembership,
+    ip_address: Optional[str] = None,
+    user_agent: str = '',
+) -> OrganizationMembership:
+    """
+    Reactivate a previously deactivated membership.
+    """
+    if actor.role != UserRole.PLATFORM_ADMIN:
+        has_admin = OrganizationMembership.objects.filter(
+            user=actor,
+            organization=membership.organization,
+            is_active=True,
+            role__in=[UserRole.ORGANIZATION_OWNER, UserRole.ORGANIZATION_ADMIN],
+        ).exists()
+        if not has_admin:
+            raise PermissionDenied('Administrative privileges required to activate members.')
+
+    membership.is_active = True
+    membership.save(update_fields=['is_active', 'updated_at'])
+
+    log_audit_event(
+        action='MEMBERSHIP_ACTIVATED',
+        actor=actor,
+        target_type='OrganizationMembership',
+        target_id=str(membership.id),
+        ip_address=ip_address,
+        user_agent=user_agent,
+        metadata={
+            'organization_id': str(membership.organization_id),
+            'target_user_id': str(membership.user_id),
+        },
+    )
+
+    return membership

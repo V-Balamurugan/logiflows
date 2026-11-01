@@ -153,3 +153,33 @@ class OrganizationMembershipSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
+
+
+class OrganizationMembershipUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating an existing organization membership role, branch, or active state.
+    """
+    class Meta:
+        model = OrganizationMembership
+        fields = ['role', 'branch', 'is_active']
+
+    def validate_role(self, value):
+        allowed_roles = [
+            UserRole.ORGANIZATION_ADMIN,
+            UserRole.BRANCH_MANAGER,
+            UserRole.EMPLOYEE,
+        ]
+        if value not in allowed_roles:
+            raise serializers.ValidationError(
+                f"Role '{value}' cannot be assigned via standard membership management."
+            )
+        return value
+
+    def validate(self, attrs):
+        branch = attrs.get('branch')
+        if branch and self.instance:
+            if branch.organization_id != self.instance.organization_id:
+                raise serializers.ValidationError({
+                    'branch': f"Branch '{branch.code}' belongs to a different organization."
+                })
+        return attrs
