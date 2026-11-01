@@ -25,6 +25,9 @@ import ProfilePage from '../pages/ProfilePage';
 import RegisterOrganizationPage from '../pages/organization/RegisterOrganizationPage';
 import PlatformAdminOrgQueuePage from '../pages/admin/PlatformAdminOrgQueuePage';
 import OrganizationSettingsPage from '../pages/organization/OrganizationSettingsPage';
+import BranchListPage from '../pages/branch/BranchListPage';
+import BranchDetailPage from '../pages/branch/BranchDetailPage';
+import ServiceabilityCheckerPage from '../pages/branch/ServiceabilityCheckerPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -97,6 +100,36 @@ export const AppRoutes: React.FC = () => {
               </AppShell>
             </RoleGuard>
           </ProtectedRoute>
+        }
+      />
+
+      {/* Branch & Serviceability Management */}
+      <Route
+        path="/branches"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <BranchListPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/branches/:id"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <BranchDetailPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/serviceability"
+        element={
+          <AppShell>
+            <ServiceabilityCheckerPage />
+          </AppShell>
         }
       />
 

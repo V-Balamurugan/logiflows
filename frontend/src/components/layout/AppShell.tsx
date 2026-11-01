@@ -14,6 +14,8 @@ import {
   LogIn,
   Building,
   ShieldAlert,
+  GitBranch,
+  MapPin,
 } from 'lucide-react';
 import Logo from '../common/Logo';
 import Badge from '../ui/Badge';
@@ -56,6 +58,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       active: location.pathname === '/design-system',
       badge: 'Tokens',
     },
+    {
+      to: '/serviceability',
+      label: 'Serviceability Checker',
+      icon: <MapPin className="w-4 h-4" />,
+      active: location.pathname === '/serviceability',
+    },
     ...(isAuthenticated
       ? [
           {
@@ -64,6 +72,16 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             icon: <UserIcon className="w-4 h-4" />,
             active: location.pathname === '/profile',
           },
+          ...(user?.role !== 'CUSTOMER'
+            ? [
+                {
+                  to: '/branches',
+                  label: 'Branches & Hubs',
+                  icon: <GitBranch className="w-4 h-4" />,
+                  active: location.pathname.startsWith('/branches'),
+                },
+              ]
+            : []),
           ...(user?.role === 'PLATFORM_ADMIN'
             ? [
                 {
@@ -114,6 +132,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       crumbs.push({ label: 'Organization Profile & Settings', path: '/organization/settings' });
     } else if (location.pathname === '/register-organization') {
       crumbs.push({ label: 'Register Organization', path: '/register-organization' });
+    } else if (location.pathname === '/branches') {
+      crumbs.push({ label: 'Branches Directory', path: '/branches' });
+    } else if (location.pathname.startsWith('/branches/')) {
+      crumbs.push({ label: 'Branches', path: '/branches' });
+      crumbs.push({ label: 'Branch Details & Service Areas', path: location.pathname });
+    } else if (location.pathname === '/serviceability') {
+      crumbs.push({ label: 'Serviceability Checker', path: '/serviceability' });
     } else if (location.pathname !== '/') {
       crumbs.push({ label: location.pathname.replace('/', ''), path: location.pathname });
     }

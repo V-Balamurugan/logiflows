@@ -45,6 +45,7 @@ urlpatterns = [
     path('api/v1/', include('apps.core.urls')),
     path('api/v1/', include('apps.accounts.urls')),
     path('api/v1/', include('apps.organizations.urls')),
+    path('api/v1/', include('apps.branches.urls')),
 
     # Direct Convenience Login Alias
     path('login/', LoginView.as_view(), name='root-login'),
