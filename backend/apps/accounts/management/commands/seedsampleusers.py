@@ -1,4 +1,5 @@
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 from apps.accounts.models import User, UserProfile, UserRole
 from apps.accounts.services.audit_service import log_audit_event
 
@@ -82,22 +83,24 @@ class Command(BaseCommand):
             '--password',
             type=str,
             default=DEFAULT_PASSWORD,
-            help=f'Password to set for all seeded sample users (default: {DEFAULT_PASSWORD})',
-        )
-        parser.add_argument(
-            '--force-passwords',
-            action='store_true',
-            help='Reset passwords for existing users to the default/provided password',
+            help=f'Password to set for newly seeded sample users (default: {DEFAULT_PASSWORD})',
         )
 
     def handle(self, *args, **options):
-        password = options.get('password') or DEFAULT_PASSWORD
-        force_passwords = options.get('force_passwords', False)
+        # Gate Item A3: Restrict command to development/testing environments only
+        env = getattr(settings, 'ENVIRONMENT', 'development')
+        if env == 'production':
+            raise CommandError(
+                "Refusing to execute 'seedsampleusers' in a production environment "
+                f"(ENVIRONMENT={env}). "
+                "This command is strictly restricted to development and testing environments."
+            )
 
+        password = options.get('password') or DEFAULT_PASSWORD
         self.stdout.write(self.style.MIGRATE_HEADING('Seeding LogiFlows sample users across all 6 roles...'))
 
         created_count = 0
-        updated_count = 0
+        preserved_count = 0
 
         for item in SAMPLE_USERS:
             email = item['email'].strip().lower()
@@ -140,48 +143,13 @@ class Command(BaseCommand):
                     f'  [CREATED] {user.role:<20} {user.email:<32} ({user.full_name})'
                 ))
             else:
-                # User already exists - update profile and optional password reset
-                needs_save = False
-                if user.role != item['role']:
-                    user.role = item['role']
-                    needs_save = True
-                if user.is_staff != item['is_staff']:
-                    user.is_staff = item['is_staff']
-                    needs_save = True
-                if user.is_superuser != item['is_superuser']:
-                    user.is_superuser = item['is_superuser']
-                    needs_save = True
-                if not user.is_active:
-                    user.is_active = True
-                    needs_save = True
-
-                if force_passwords:
-                    user.set_password(password)
-                    needs_save = True
-
-                if needs_save:
-                    user.save()
-
-                profile, _ = UserProfile.objects.get_or_create(user=user)
-                profile_updated = False
-                if not profile.phone and item['phone']:
-                    profile.phone = item['phone']
-                    profile_updated = True
-                if not profile.avatar_url and item['avatar_url']:
-                    profile.avatar_url = item['avatar_url']
-                    profile_updated = True
-                if not profile.bio and item['bio']:
-                    profile.bio = item['bio']
-                    profile_updated = True
-                if profile_updated:
-                    profile.save()
-
-                updated_count += 1
+                # Gate Item A3: Invariant guard — Existing users MUST NEVER have their role,
+                # staff status, superuser status, or password modified by seedsampleusers.
+                preserved_count += 1
                 self.stdout.write(self.style.WARNING(
-                    f'  [EXISTS]  {user.role:<20} {user.email:<32} (preserved / updated)'
+                    f'  [EXISTS]  {user.role:<20} {user.email:<32} (preserved without modification)'
                 ))
 
         self.stdout.write(self.style.SUCCESS(
-            f'\nFinished seeding sample users: {created_count} created, {updated_count} existing.'
+            f'\nFinished seeding sample users: {created_count} created, {preserved_count} preserved.'
         ))
-

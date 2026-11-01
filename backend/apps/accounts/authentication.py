@@ -12,13 +12,14 @@ logger = logging.getLogger('apps.accounts.auth')
 
 class LogiFlowsJWTAuthentication(JWTAuthentication):
     """
-    Robust, developer-friendly JWT Authentication backend for LogiFlows.
-    Extends SimpleJWT to handle:
-    1. Standard 'Bearer <token>', 'Token <token>', 'JWT <token>' prefixes.
-    2. Stripping accidental duplicate prefixes like 'Bearer Bearer <token>' (common in Swagger UI).
-    3. Direct raw JWT strings ('eyJ...') sent without a prefix.
-    4. Custom 'X-Auth-Token: <token>' header.
-    5. Graceful handling on AllowAny (public) endpoints: if a client passes an invalid or expired
+    Standardized, RFC 6750-compliant JWT Authentication backend for LogiFlows.
+    Standardizes strictly on 'Bearer <token>' authorization header format.
+
+    Developer Ergonomics & Resilience:
+    1. Normalizes accidental duplicate 'Bearer Bearer <token>' prefixes from copy-paste
+       events in Swagger UI / OpenAPI explorers.
+    2. Allows raw JWT strings ('eyJ...') sent directly in the Authorization header.
+    3. Graceful handling on AllowAny (public) endpoints: if a client passes an invalid or expired
        token to an AllowAny endpoint (e.g. Swagger persistAuthorization), degrades to AnonymousUser
        so public endpoints (like /health/, /login/, /register/, /activate/) always succeed.
     """
@@ -42,38 +43,24 @@ class LogiFlowsJWTAuthentication(JWTAuthentication):
                     return True
         return False
 
-    def get_header(self, request: Request) -> Optional[bytes]:
-        header = super().get_header(request)
-        if header is not None:
-            return header
-
-        # Fallback: Support X-Auth-Token header
-        x_auth = request.META.get('HTTP_X_AUTH_TOKEN')
-        if x_auth:
-            if isinstance(x_auth, str):
-                return f'Bearer {x_auth}'.encode()
-            return x_auth
-        return None
-
     def get_raw_token(self, header: bytes) -> Optional[bytes]:
         """
-        Extract raw token handling multiple prefixes, raw tokens, and duplicate headers.
+        Extract raw token standardizing on RFC 6750 'Bearer <token>'.
         """
         parts = header.split()
 
         if len(parts) == 0:
             return None
 
-        # Clean accidental duplicate prefixes (e.g. 'Bearer Bearer eyJ...', 'Token Token eyJ...')
-        known_prefixes = {b'bearer', b'token', b'jwt'}
-        while len(parts) > 1 and parts[0].lower() in known_prefixes and parts[1].lower() in known_prefixes:
+        # Clean accidental duplicate 'Bearer Bearer' prefixes from copy-paste in UI
+        while len(parts) > 1 and parts[0].lower() == b'bearer' and parts[1].lower() == b'bearer':
             parts.pop(0)
 
-        # Standard prefixes: 'Bearer <token>', 'Token <token>', 'JWT <token>'
-        if len(parts) == 2 and parts[0].lower() in known_prefixes:
+        # Standard RFC 6750: 'Bearer <token>'
+        if len(parts) == 2 and parts[0].lower() == b'bearer':
             return parts[1]
 
-        # Raw JWT token without prefix (JWT strings start with 'ey')
+        # Raw JWT token if pasted directly without prefix
         if len(parts) == 1 and parts[0].startswith(b'ey'):
             return parts[0]
 
@@ -83,7 +70,7 @@ class LogiFlowsJWTAuthentication(JWTAuthentication):
 class LogiFlowsJWTScheme(OpenApiAuthenticationExtension):
     """
     OpenAPI 3 / Swagger scheme for LogiFlowsJWTAuthentication.
-    Registers 'jwtAuth' under securitySchemes.
+    Registers 'jwtAuth' under securitySchemes as Bearer JWT.
     """
     target_class = 'apps.accounts.authentication.LogiFlowsJWTAuthentication'
     name = 'jwtAuth'
@@ -94,7 +81,7 @@ class LogiFlowsJWTScheme(OpenApiAuthenticationExtension):
             'scheme': 'bearer',
             'bearerFormat': 'JWT',
             'description': (
-                'Paste the auth token received from `POST /api/v1/auth/login/` (or `POST /api/v1/login/`).\n\n'
-                'Supports raw `<token>`, `Bearer <token>`, or `Token <token>`.'
+                'Standard RFC 6750 Bearer JWT token received from `POST /api/v1/auth/login/`.\n\n'
+                'Format: `Bearer <your_token>`'
             ),
         }

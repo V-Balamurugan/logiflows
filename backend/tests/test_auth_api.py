@@ -377,9 +377,10 @@ class TestAuthAPIEndpoints:
         assert res2.status_code == status.HTTP_200_OK
         assert 'token' in res2.data
 
-    def test_flexible_jwt_auth_header_formats(self):
+    def test_standard_jwt_bearer_auth_header_formats(self):
+        """Gate Item A4: Standardize strictly on RFC 6750 Bearer authentication."""
         user = User.objects.create_user(
-            email='flexauth@logiflows.test',
+            email='bearerauth@logiflows.test',
             password='Password2026!',
             is_active=True,
         )
@@ -387,30 +388,30 @@ class TestAuthAPIEndpoints:
 
         login_res = self.client.post(
             reverse('auth-login'),
-            {'email': 'flexauth@logiflows.test', 'password': 'Password2026!'},
+            {'email': 'bearerauth@logiflows.test', 'password': 'Password2026!'},
             format='json',
         )
         token = login_res.data['token']
 
-        # 1. Bearer <token>
+        # 1. Standard RFC 6750: Bearer <token>
         res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=f'Bearer {token}')
         assert res.status_code == status.HTTP_200_OK
 
-        # 2. Token <token>
-        res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=f'Token {token}')
-        assert res.status_code == status.HTTP_200_OK
-
-        # 3. Accidental duplicate: Bearer Bearer <token>
+        # 2. Resilient UI duplicate: Bearer Bearer <token>
         res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=f'Bearer Bearer {token}')
         assert res.status_code == status.HTTP_200_OK
 
-        # 4. Raw token without prefix: <token>
+        # 3. Raw JWT string starting with 'ey'
         res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=token)
         assert res.status_code == status.HTTP_200_OK
 
-        # 5. X-Auth-Token header
+        # 4. Non-standard prefix should be rejected on protected endpoints
+        res = self.client.get(reverse('users-me'), HTTP_AUTHORIZATION=f'InvalidScheme {token}')
+        assert res.status_code == status.HTTP_401_UNAUTHORIZED
+
+        # 5. Non-standard header X-Auth-Token should be rejected
         res = self.client.get(reverse('users-me'), HTTP_X_AUTH_TOKEN=token)
-        assert res.status_code == status.HTTP_200_OK
+        assert res.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_allow_any_endpoint_with_invalid_token(self):
         """AllowAny endpoints should not crash with 401 when an invalid/expired token is sent."""

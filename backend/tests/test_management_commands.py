@@ -59,7 +59,7 @@ class TestManagementCommands:
         call_command('seedsampleusers', stdout=out)
         output = out.getvalue()
 
-        assert 'Finished seeding sample users: 6 created, 0 existing' in output
+        assert 'Finished seeding sample users: 6 created, 0 preserved' in output
 
         expected_roles = {
             'alex.mercer@logiflows.admin': (UserRole.PLATFORM_ADMIN, True, True),
@@ -85,23 +85,40 @@ class TestManagementCommands:
         logs = AuditLog.objects.filter(action='SAMPLE_USER_SEEDED')
         assert logs.count() == 6
 
-    def test_seedsampleusers_idempotency(self):
+    def test_seedsampleusers_idempotency_preserves_without_modification(self):
         call_command('seedsampleusers')
         out = StringIO()
         call_command('seedsampleusers', stdout=out)
         output = out.getvalue()
-        assert 'Finished seeding sample users: 0 created, 6 existing' in output
+        assert 'Finished seeding sample users: 0 created, 6 preserved' in output
         assert User.objects.count() == 6
 
-    def test_seedsampleusers_force_passwords(self):
-        call_command('seedsampleusers')
-        user = User.objects.get(email='alex.mercer@logiflows.admin')
-        user.set_password('TemporaryPassword999!')
-        user.save()
-        assert user.check_password('TemporaryPassword999!')
+    def test_seedsampleusers_never_modifies_existing_users(self):
+        """Gate Item A3: Existing users must never have their roles, flags, or passwords altered."""
+        custom_password = 'ExistingCustomPassword123!'
+        existing_user = User.objects.create_user(
+            email='alex.mercer@logiflows.admin',
+            password=custom_password,
+            role=UserRole.CUSTOMER,
+            is_staff=False,
+            is_superuser=False,
+            is_active=True,
+        )
 
         out = StringIO()
-        call_command('seedsampleusers', force_passwords=True, password='UpdatedPassword2026!', stdout=out)
-        user.refresh_from_db()
-        assert user.check_password('UpdatedPassword2026!')
+        call_command('seedsampleusers', stdout=out)
+        existing_user.refresh_from_db()
 
+        # Invariant checks: role, flags, password remain completely untouched
+        assert existing_user.role == UserRole.CUSTOMER
+        assert existing_user.is_staff is False
+        assert existing_user.is_superuser is False
+        assert existing_user.check_password(custom_password) is True
+
+    def test_seedsampleusers_environment_guard_blocks_production(self, settings):
+        """Gate Item A3: seedsampleusers must raise CommandError in production environment."""
+        settings.ENVIRONMENT = 'production'
+        settings.DEBUG = False
+
+        with pytest.raises(CommandError, match='Refusing to execute.*production'):
+            call_command('seedsampleusers')

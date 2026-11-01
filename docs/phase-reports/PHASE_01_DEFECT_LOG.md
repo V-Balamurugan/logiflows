@@ -77,3 +77,4 @@
   - `backend/tests/test_auth_api.py::TestAuthAPIEndpoints::test_allow_any_endpoint_with_invalid_token`
   - `backend/tests/test_auth_api.py::TestAuthAPIEndpoints::test_flexible_jwt_auth_header_formats`
 - **Rerun Result:** **PASSED** (health check and auth endpoints succeed even with invalid or corrupted Authorization headers).
+
