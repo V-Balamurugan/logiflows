@@ -17,6 +17,7 @@ import {
   GitBranch,
   MapPin,
   Users,
+  LayoutDashboard,
 } from 'lucide-react';
 import Logo from '../common/Logo';
 import Badge from '../ui/Badge';
@@ -67,6 +68,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     },
     ...(isAuthenticated
       ? [
+          {
+            to: '/dashboard',
+            label: 'Operations Dashboard',
+            icon: <LayoutDashboard className="w-4 h-4" />,
+            active: location.pathname === '/dashboard',
+          },
           {
             to: '/profile',
             label: 'My Profile & Security',

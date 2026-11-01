@@ -30,6 +30,7 @@ import BranchDetailPage from '../pages/branch/BranchDetailPage';
 import ServiceabilityCheckerPage from '../pages/branch/ServiceabilityCheckerPage';
 import EmployeeListPage from '../pages/employee/EmployeeListPage';
 import EmployeeDetailPage from '../pages/employee/EmployeeDetailPage';
+import DashboardPage from '../pages/DashboardPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -46,6 +47,18 @@ export const AppRoutes: React.FC = () => {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+      {/* Authenticated Dashboard */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <DashboardPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected Profile Pages */}
       <Route
