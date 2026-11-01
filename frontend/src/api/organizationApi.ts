@@ -78,3 +78,4 @@ export const getMyMembershipsApi = async (): Promise<OrganizationMembership[]> =
   const response = await apiClient.get<OrganizationMembership[]>('/memberships/me/');
   return response.data;
 };
+

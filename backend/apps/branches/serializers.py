@@ -175,3 +175,4 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
             'status',
             'manager',
         ]
+

@@ -43,3 +43,4 @@ export const activateEmployeeApi = async (id: string): Promise<Employee> => {
   const response = await apiClient.post<Employee>(`/employees/${id}/activate/`);
   return response.data;
 };
+

@@ -354,3 +354,4 @@ export const BranchDetailPage: React.FC = () => {
 };
 
 export default BranchDetailPage;
+

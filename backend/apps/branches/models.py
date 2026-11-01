@@ -112,3 +112,4 @@ class ServiceArea(BaseModel):
         if self.postal_code:
             self.postal_code = self.postal_code.strip()
         super().save(*args, **kwargs)
+

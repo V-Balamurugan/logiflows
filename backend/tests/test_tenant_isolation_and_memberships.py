@@ -268,3 +268,4 @@ class TestMembershipAndRoleAssignment:
         response = self.client.post(activate_url)
         assert response.status_code == status.HTTP_200_OK
         assert response.data['is_active'] is True
+

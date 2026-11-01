@@ -44,3 +44,4 @@ export interface DashboardSummaryResponse {
   } | null;
   metrics: PlatformAdminMetrics | TenantMetrics | BranchManagerMetrics | Record<string, any>;
 }
+

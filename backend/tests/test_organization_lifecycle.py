@@ -331,3 +331,4 @@ class TestOrganizationAPIEndpoints:
         assert len(response.data) == 1
         assert response.data[0]['organization_code'] == 'APEX-IND'
         assert response.data[0]['role'] == UserRole.ORGANIZATION_OWNER
+

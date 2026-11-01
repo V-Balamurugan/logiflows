@@ -5,18 +5,18 @@ test.describe('Phase 02: Multi-Tenant & Branch Serviceability E2E Tests', () => 
     await page.goto('/serviceability');
 
     // Verify title and page header
-    await expect(page.getByRole('heading', { name: /Postal Serviceability & Coverage Checker/i })).toBeVisible();
-    await expect(page.getByPlaceholderText(/e\.g\. 110001, 400001/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Delivery Serviceability Checker/i })).toBeVisible();
+    await expect(page.getByPlaceholder(/Enter postal code/i)).toBeVisible();
 
-    // Check empty submission validation
-    const checkButton = page.getByRole('button', { name: /Check Serviceability/i });
+    // Check submission
+    const checkButton = page.getByRole('button', { name: /Check/i });
     await expect(checkButton).toBeVisible();
 
     // Fill valid postal code
-    await page.getByPlaceholderText(/e\.g\. 110001, 400001/i).fill('110001');
+    await page.getByPlaceholder(/Enter postal code/i).fill('110006');
     await checkButton.click();
 
-    // Either network response appears or serviceability status is rendered
+    // Wait for response verification
     await page.waitForTimeout(1000);
   });
 
@@ -43,3 +43,4 @@ test.describe('Phase 02: Multi-Tenant & Branch Serviceability E2E Tests', () => 
     await expect(page).toHaveURL(/\/login\?redirect=%2Fadmin%2Forganizations/);
   });
 });
+

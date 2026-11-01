@@ -9,3 +9,4 @@ urlpatterns = [
     path('', include(router.urls)),
     path('memberships/me/', MyMembershipsView.as_view(), name='memberships-me'),
 ]
+

@@ -57,3 +57,4 @@ class CanManageBranch(permissions.BasePermission):
             return True
 
         return False
+

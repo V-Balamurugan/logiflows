@@ -53,3 +53,4 @@ class CanManageEmployee(permissions.BasePermission):
 
         # Employee: safe methods only
         return request.method in permissions.SAFE_METHODS
+

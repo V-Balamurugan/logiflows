@@ -9,3 +9,4 @@ urlpatterns = [
     path('', include(router.urls)),
     path('serviceability/', ServiceabilityCheckView.as_view(), name='serviceability-check'),
 ]
+

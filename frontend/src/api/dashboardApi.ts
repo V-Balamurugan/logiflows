@@ -7,3 +7,4 @@ export const getDashboardSummaryApi = async (organizationId?: string): Promise<D
   });
   return response.data;
 };
+

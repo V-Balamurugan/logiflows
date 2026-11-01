@@ -128,3 +128,4 @@ class OrganizationMembership(BaseModel):
     def __str__(self):
         active_str = 'ACTIVE' if self.is_active else 'INACTIVE'
         return f'{self.user.email} -> {self.organization.code} [{self.role} - {active_str}]'
+

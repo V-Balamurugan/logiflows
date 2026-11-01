@@ -78,9 +78,9 @@ export const PublicLayout: React.FC = () => {
                   </div>
                   <span className="max-w-[100px] truncate">{user.full_name || user.email}</span>
                 </Link>
-                <Link to="/status">
+                <Link to="/dashboard">
                   <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                    Console
+                    Dashboard
                   </Button>
                 </Link>
               </div>

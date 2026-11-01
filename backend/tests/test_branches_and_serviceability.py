@@ -375,3 +375,4 @@ class TestBranchAndServiceabilityAPI:
         assert response.data['is_serviceable'] is True
         assert response.data['match_count'] == 1
         assert response.data['providers'][0]['branch']['code'] == 'DEL-NORTH'
+

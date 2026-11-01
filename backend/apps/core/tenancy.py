@@ -168,3 +168,4 @@ class TenantScopedViewSetMixin:
                 f"You do not have administrative authority in organization '{organization.code}'."
             )
         return True
+

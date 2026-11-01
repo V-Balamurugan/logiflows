@@ -124,3 +124,4 @@ class EmployeeUpdateSerializer(serializers.ModelSerializer):
             'role',
             'branch_id',
         ]
+

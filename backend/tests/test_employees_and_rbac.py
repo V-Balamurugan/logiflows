@@ -325,3 +325,4 @@ class TestEmployeeAPIAndDeactivationLifecycle:
         detail_url = reverse('employee-detail', kwargs={'pk': emp.id})
         response = self.client.get(detail_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+

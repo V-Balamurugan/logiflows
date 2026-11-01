@@ -237,3 +237,4 @@ export const RegisterOrganizationPage: React.FC = () => {
 };
 
 export default RegisterOrganizationPage;
+

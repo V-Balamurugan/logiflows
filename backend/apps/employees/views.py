@@ -147,3 +147,4 @@ class EmployeeViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
             user_agent=get_client_user_agent(request),
         )
         return Response(EmployeeProfileSerializer(activated).data, status=status.HTTP_200_OK)
+

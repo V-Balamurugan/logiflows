@@ -46,3 +46,4 @@ export interface UpdateEmployeeInput {
   role?: string;
   branch_id?: string | null;
 }
+

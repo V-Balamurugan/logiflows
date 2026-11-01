@@ -427,3 +427,4 @@ export const EmployeeDetailPage: React.FC = () => {
 };
 
 export default EmployeeDetailPage;
+

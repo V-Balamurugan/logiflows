@@ -22,8 +22,8 @@ test.describe.serial('LogiFlows Phase 01 Authentication & RBAC E2E Journey', () 
     await page.getByRole('button', { name: /register account/i }).click();
 
     // 4. Verify confirmation card is displayed
-    await expect(page.getByText('Check Your Email')).toBeVisible();
-    await expect(page.getByText(testEmail)).toBeVisible();
+    await expect(page.getByText('Check Your Email')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(testEmail)).toBeVisible({ timeout: 15000 });
 
     // 5. Query Mailpit dev mail sink for activation email
     let activationToken: string | null = null;

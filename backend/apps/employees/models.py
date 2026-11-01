@@ -54,3 +54,4 @@ class EmployeeProfile(BaseModel):
         if self.employee_code:
             self.employee_code = self.employee_code.strip().upper()
         super().save(*args, **kwargs)
+

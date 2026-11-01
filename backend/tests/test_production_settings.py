@@ -73,3 +73,4 @@ class TestProductionSettingsFailFast:
         assert 'LogiFlowsDev2026!' not in description
         assert 'alex.mercer@logiflows.admin' not in description
         assert 'Sample Personas for One-Click Testing' not in description
+
