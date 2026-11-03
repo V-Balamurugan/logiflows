@@ -26,6 +26,14 @@ export interface BranchManagerMetrics {
   service_areas_covered: number;
 }
 
+export interface EmployeeMetrics {
+  is_active: boolean;
+}
+
+export interface CustomerMetrics {
+  account_status: string;
+}
+
 export interface DashboardSummaryResponse {
   role: string;
   scope: 'GLOBAL' | 'TENANT' | 'BRANCH' | 'EMPLOYEE' | 'PERSONAL';
@@ -42,6 +50,6 @@ export interface DashboardSummaryResponse {
     code: string;
     status?: string;
   } | null;
-  metrics: PlatformAdminMetrics | TenantMetrics | BranchManagerMetrics | Record<string, any>;
+  metrics: PlatformAdminMetrics | TenantMetrics | BranchManagerMetrics | EmployeeMetrics | CustomerMetrics | Record<string, any>;
 }
 

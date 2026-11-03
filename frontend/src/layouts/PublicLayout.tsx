@@ -18,9 +18,9 @@ export const PublicLayout: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
       {/* Top Announcement Bar */}
       <div className="bg-slate-900/80 border-b border-slate-800/80 text-xs py-2 px-4 text-center text-slate-400 flex items-center justify-center gap-2">
-        <span className="font-semibold text-teal-400">Phase 00 Foundation Active</span>
+        <span className="font-semibold text-teal-400">Phase 02 Multi-Tenant Network Active</span>
         <span className="hidden sm:inline text-slate-600">•</span>
-        <span className="hidden sm:inline">Django 5 + React 18 + PostgreSQL 16 Enterprise Stack</span>
+        <span className="hidden sm:inline">Organizations, Hubs, Postal Serviceability & RBAC Live</span>
         <Link to="/app/status" className="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1 ml-2">
           View Health Telemetry <ArrowRight className="w-3 h-3" />
         </Link>

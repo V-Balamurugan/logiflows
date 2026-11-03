@@ -97,7 +97,7 @@ class HealthCheckView(APIView):
                 'db': 'ok',
                 'latency_ms': latency_ms,
                 'environment': getattr(settings, 'ENVIRONMENT', 'development'),
-                'version': '1.0.0-phase-01',
+                'version': '1.0.0-phase-02',
                 'timestamp': timezone.now().isoformat(),
             },
             status=status.HTTP_200_OK,

@@ -69,7 +69,7 @@ describe('LogiFlows Root Application Integration Tests', () => {
 
     expect(screen.getAllByText('Logi')[0]).toBeInTheDocument();
     expect(screen.getAllByText('Flows')[0]).toBeInTheDocument();
-    expect(screen.getByText('Phase 00 Foundation Active')).toBeInTheDocument();
+    expect(screen.getByText('Phase 02 Multi-Tenant Network Active')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Smart Postal &.*Logistics Management/i);
   });
 

@@ -143,27 +143,27 @@ export const StatusPage: React.FC = () => {
               <div className="p-2 rounded-lg bg-purple-950/60 border border-purple-800/50 text-purple-400">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <Badge variant="teal">PHASE 00 AUDITED</Badge>
+              <Badge variant="teal">PHASE 02 VERIFIED</Badge>
             </div>
-            <CardTitle className="text-base font-semibold mt-3">Architecture & Models</CardTitle>
-            <CardDescription className="text-xs">Verified Foundation & User Baseline</CardDescription>
+            <CardTitle className="text-base font-semibold mt-3">Multi-Tenant Architecture</CardTitle>
+            <CardDescription className="text-xs">Phase 01 Auth & Phase 02 Network Live</CardDescription>
           </CardHeader>
           <CardContent className="pt-0 space-y-2.5 text-xs text-slate-400">
             <div className="flex justify-between py-1 border-b border-slate-800/60">
-              <span>User Model:</span>
-              <span className="font-mono text-slate-200">accounts.User (UUID PK)</span>
+              <span>Multi-Tenancy:</span>
+              <span className="font-mono text-emerald-400">Active (DB-Level Isolation)</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-800/60">
-              <span>Login Identifier:</span>
-              <span className="font-mono text-slate-200">Normalized Email</span>
+              <span>Branch Hierarchy:</span>
+              <span className="font-mono text-slate-200">Hubs & Service Areas Live</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-800/60">
-              <span>Initial Role:</span>
-              <span className="font-mono text-slate-200">CUSTOMER (Safe Default)</span>
+              <span>RBAC Security:</span>
+              <span className="font-mono text-slate-200">6 Strict Roles Enforced</span>
             </div>
             <div className="flex justify-between py-1">
-              <span>JWT Auth Setup:</span>
-              <span className="font-mono text-slate-300">SimpleJWT (15m / 7d rotate)</span>
+              <span>Auth Session:</span>
+              <span className="font-mono text-slate-300">HttpOnly Refresh + Short Access</span>
             </div>
           </CardContent>
         </Card>

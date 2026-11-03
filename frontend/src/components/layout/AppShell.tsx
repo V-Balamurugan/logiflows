@@ -175,8 +175,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <Logo size="md" />
-            <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono bg-blue-950/60 text-blue-400 border border-blue-800/40">
-              Phase 01 Auth & RBAC
+            <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono bg-blue-950/60 text-teal-400 border border-teal-800/40">
+              Phase 02 Multi-Tenant Network
             </span>
           </div>
 
@@ -295,10 +295,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <div className="rounded-xl p-3.5 bg-slate-900/60 border border-slate-800">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 mb-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Security Baseline</span>
+                <span>Multi-Tenancy Active</span>
               </div>
               <p className="text-xs text-slate-400">
-                JWT in HttpOnly Cookie, Rate-Limiting & Rotating Tokens active.
+                Phase 02 Multi-Tenant Isolation, Branches & RBAC Active.
               </p>
             </div>
           </div>

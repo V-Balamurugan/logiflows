@@ -198,5 +198,85 @@ describe('Module 7: Dashboard Telemetry and Role Scoping', () => {
       expect(screen.getByText('3')).toBeInTheDocument();
     });
   });
+
+  it('renders employee workforce hub with assigned organization and branch', async () => {
+    (orgApi.getMyMembershipsApi as any).mockResolvedValue([
+      {
+        id: 'mem-emp',
+        organization: 'org-apex',
+        organization_name: 'Apex Express',
+        organization_code: 'APEX',
+        organization_status: 'APPROVED',
+        user: 'user-emp',
+        user_email: 'courier@apex.test',
+        user_full_name: 'Courier Rajesh',
+        role: 'EMPLOYEE',
+        branch: 'branch-del-01',
+        branch_name: 'Delhi North Hub',
+        is_active: true,
+      },
+    ]);
+
+    (dashboardApi.getDashboardSummaryApi as any).mockResolvedValue({
+      role: 'EMPLOYEE',
+      scope: 'EMPLOYEE',
+      has_tenant: true,
+      organization: {
+        id: 'org-apex',
+        name: 'Apex Express',
+        code: 'APEX',
+      },
+      branch: {
+        id: 'branch-del-01',
+        name: 'Delhi North Hub',
+        code: 'DEL-01',
+      },
+      metrics: {
+        is_active: true,
+      },
+    });
+
+    renderWithAuth({
+      id: 'user-emp',
+      email: 'courier@apex.test',
+      full_name: 'Courier Rajesh',
+      role: 'EMPLOYEE',
+      is_active: true,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Courier & Operations Workforce Hub')).toBeInTheDocument();
+      expect(screen.getByText('Assigned Organization')).toBeInTheDocument();
+      expect(screen.getByText('Assigned Branch Hub')).toBeInTheDocument();
+      expect(screen.getByText('Active Duty')).toBeInTheDocument();
+    });
+  });
+
+  it('renders customer portal with serviceability and registration CTAs', async () => {
+    (orgApi.getMyMembershipsApi as any).mockResolvedValue([]);
+
+    (dashboardApi.getDashboardSummaryApi as any).mockResolvedValue({
+      role: 'CUSTOMER',
+      scope: 'PERSONAL',
+      has_tenant: false,
+      metrics: {
+        account_status: 'ACTIVE',
+      },
+    });
+
+    renderWithAuth({
+      id: 'user-cust',
+      email: 'customer@test.com',
+      full_name: 'Jane Customer',
+      role: 'CUSTOMER',
+      is_active: true,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Customer Logistics Portal')).toBeInTheDocument();
+      expect(screen.getByText('Check Delivery Serviceability')).toBeInTheDocument();
+      expect(screen.getByText('Register a Logistics Company')).toBeInTheDocument();
+    });
+  });
 });
 
