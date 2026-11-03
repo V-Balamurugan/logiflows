@@ -19,6 +19,7 @@ import {
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { Card, CardContent } from '../components/ui/Card';
+import ProcessFlowStepper from '../components/common/ProcessFlowStepper';
 
 export const LandingPage: React.FC = () => {
   const plannedFeatures = [
@@ -71,8 +72,8 @@ export const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-medium">
-          <Badge variant="teal" size="sm">Phase 00</Badge>
-          <span>Architecture & Development Foundation Active</span>
+          <Badge variant="teal" size="sm">Phase 02 Live</Badge>
+          <span>Multi-Tenant Network, Branch Hierarchy & Role RBAC Active</span>
         </div>
 
         <div className="space-y-4 max-w-4xl mx-auto">
@@ -187,15 +188,22 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* End-to-End Operational Logistics Lifecycle */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="glass-panel p-6 sm:p-8 bg-slate-900/60 border-slate-800 rounded-2xl">
+          <ProcessFlowStepper />
+        </div>
+      </section>
+
       {/* Planned Feature Roadmap Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <Badge variant="info">Planned Functional Roadmap</Badge>
+          <Badge variant="info">Platform Capabilities & Roadmap</Badge>
           <h2 className="text-3xl font-bold text-white tracking-tight">
-            Upcoming Modules in Future Phases
+            Live Modules & Future Capabilities
           </h2>
           <p className="text-slate-400 text-sm sm:text-base">
-            In compliance with strict Phase 0 boundaries, these operational capabilities are planned for upcoming milestones:
+            Track currently live multi-tenant capabilities alongside upcoming operational milestones:
           </p>
         </div>
 

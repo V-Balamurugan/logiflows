@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity,
   Menu,
@@ -9,10 +9,20 @@ import {
   ExternalLink,
   ChevronRight,
   ShieldCheck,
+  User as UserIcon,
+  LogOut,
+  LogIn,
+  Building,
+  ShieldAlert,
+  GitBranch,
+  MapPin,
+  Users,
+  LayoutDashboard,
 } from 'lucide-react';
 import Logo from '../common/Logo';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
+import { useAuth } from '../../context/AuthContext';
 
 export interface AppShellProps {
   children?: React.ReactNode;
@@ -21,6 +31,13 @@ export interface AppShellProps {
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const navLinks = [
     {
@@ -43,6 +60,75 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       active: location.pathname === '/design-system',
       badge: 'Tokens',
     },
+    {
+      to: '/serviceability',
+      label: 'Serviceability Checker',
+      icon: <MapPin className="w-4 h-4" />,
+      active: location.pathname === '/serviceability',
+    },
+    ...(isAuthenticated
+      ? [
+          {
+            to: '/dashboard',
+            label: 'Operations Dashboard',
+            icon: <LayoutDashboard className="w-4 h-4" />,
+            active: location.pathname === '/dashboard',
+          },
+          {
+            to: '/profile',
+            label: 'My Profile & Security',
+            icon: <UserIcon className="w-4 h-4" />,
+            active: location.pathname === '/profile',
+          },
+          ...(user?.role !== 'CUSTOMER'
+            ? [
+                {
+                  to: '/branches',
+                  label: 'Branches & Hubs',
+                  icon: <GitBranch className="w-4 h-4" />,
+                  active: location.pathname.startsWith('/branches'),
+                },
+                {
+                  to: '/employees',
+                  label: 'Employees & Staff',
+                  icon: <Users className="w-4 h-4" />,
+                  active: location.pathname.startsWith('/employees'),
+                },
+              ]
+            : []),
+          ...(user?.role === 'PLATFORM_ADMIN'
+            ? [
+                {
+                  to: '/admin/organizations',
+                  label: 'Tenant Approvals',
+                  icon: <ShieldAlert className="w-4 h-4" />,
+                  active: location.pathname === '/admin/organizations',
+                  badge: 'Admin',
+                },
+              ]
+            : []),
+          ...(user?.role === 'ORGANIZATION_OWNER' || user?.role === 'ORGANIZATION_ADMIN'
+            ? [
+                {
+                  to: '/organization/settings',
+                  label: 'Organization Profile',
+                  icon: <Building className="w-4 h-4" />,
+                  active: location.pathname === '/organization/settings',
+                },
+              ]
+            : []),
+          ...(user?.role === 'CUSTOMER'
+            ? [
+                {
+                  to: '/register-organization',
+                  label: 'Register Organization',
+                  icon: <Building className="w-4 h-4" />,
+                  active: location.pathname === '/register-organization',
+                },
+              ]
+            : []),
+        ]
+      : []),
   ];
 
   // Dynamic breadcrumb generation
@@ -52,6 +138,21 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       crumbs.push({ label: 'Platform Health & Status', path: '/status' });
     } else if (location.pathname === '/design-system') {
       crumbs.push({ label: 'Enterprise Design System', path: '/design-system' });
+    } else if (location.pathname === '/profile') {
+      crumbs.push({ label: 'Account Profile & Security', path: '/profile' });
+    } else if (location.pathname === '/admin/organizations') {
+      crumbs.push({ label: 'Platform Tenant Queue', path: '/admin/organizations' });
+    } else if (location.pathname === '/organization/settings') {
+      crumbs.push({ label: 'Organization Profile & Settings', path: '/organization/settings' });
+    } else if (location.pathname === '/register-organization') {
+      crumbs.push({ label: 'Register Organization', path: '/register-organization' });
+    } else if (location.pathname === '/branches') {
+      crumbs.push({ label: 'Branches Directory', path: '/branches' });
+    } else if (location.pathname.startsWith('/branches/')) {
+      crumbs.push({ label: 'Branches', path: '/branches' });
+      crumbs.push({ label: 'Branch Details & Service Areas', path: location.pathname });
+    } else if (location.pathname === '/serviceability') {
+      crumbs.push({ label: 'Serviceability Checker', path: '/serviceability' });
     } else if (location.pathname !== '/') {
       crumbs.push({ label: location.pathname.replace('/', ''), path: location.pathname });
     }
@@ -74,8 +175,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <Logo size="md" />
-            <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono bg-blue-950/60 text-blue-400 border border-blue-800/40">
-              Phase 00 Foundation
+            <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-mono bg-blue-950/60 text-teal-400 border border-teal-800/40">
+              Phase 02 Multi-Tenant Network
             </span>
           </div>
 
@@ -101,6 +202,40 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <span>Swagger UI</span>
               <ExternalLink className="w-3 h-3" />
             </a>
+
+            {/* Auth State Pill */}
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-2 pl-3 border-l border-slate-800">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-200 hover:text-blue-400 transition-colors"
+                >
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                    {user.first_name ? user.first_name[0].toUpperCase() : user.email[0].toUpperCase()}
+                  </div>
+                  <span className="max-w-[120px] truncate">{user.full_name || user.email}</span>
+                </Link>
+                <Badge variant="default" size="sm">
+                  {user.role}
+                </Badge>
+                <button
+                  onClick={handleLogout}
+                  className="p-1.5 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                  title="Sign Out"
+                  aria-label="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 pl-3 border-l border-slate-800">
+                <Link to="/login">
+                  <Button variant="primary" size="sm" leftIcon={<LogIn className="w-3.5 h-3.5" />}>
+                    Sign In
+                  </Button>
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       </header>
@@ -160,10 +295,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <div className="rounded-xl p-3.5 bg-slate-900/60 border border-slate-800">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-300 mb-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Security Baseline</span>
+                <span>Multi-Tenancy Active</span>
               </div>
               <p className="text-xs text-slate-400">
-                UUID Keys, Case-Insensitive Email, HTTP-only JWT ready.
+                Phase 02 Multi-Tenant Isolation, Branches & RBAC Active.
               </p>
             </div>
           </div>

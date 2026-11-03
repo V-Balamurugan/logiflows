@@ -100,10 +100,10 @@ export const AppShellLayout: React.FC = () => {
         <div className="px-4 py-3 mx-4 my-3 bg-slate-950/60 rounded-lg border border-slate-800 text-xs">
           <div className="text-slate-500 font-medium">Tenant Context</div>
           <div className="font-semibold text-slate-200 mt-0.5 flex items-center justify-between">
-            <span>Global Foundation</span>
-            <Badge variant="teal" size="sm">Phase 00</Badge>
+            <span>Multi-Tenant Network</span>
+            <Badge variant="teal" size="sm">Phase 02</Badge>
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Multi-tenancy isolation planned for Phase 01</div>
+          <div className="text-[11px] text-slate-400 mt-1">Multi-tenancy isolation and RBAC active</div>
         </div>
 
         {/* Navigation Sections */}

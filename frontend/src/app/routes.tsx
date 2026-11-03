@@ -2,11 +2,35 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import PublicLayout from '../layouts/PublicLayout';
 import AppShell from '../components/layout/AppShell';
+import ProtectedRoute from '../components/auth/ProtectedRoute';
+import RoleGuard from '../components/auth/RoleGuard';
+
+// Public Pages
 import LandingPage from '../pages/LandingPage';
 import StatusPage from '../pages/StatusPage';
 import DesignSystemPage from '../pages/DesignSystemPage';
 import ArchitecturePage from '../pages/ArchitecturePage';
 import NotFoundPage from '../pages/NotFoundPage';
+
+// Auth Pages
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
+import ActivationPage from '../pages/auth/ActivationPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
+import UnauthorizedPage from '../pages/auth/UnauthorizedPage';
+
+// Authenticated Pages
+import ProfilePage from '../pages/ProfilePage';
+import RegisterOrganizationPage from '../pages/organization/RegisterOrganizationPage';
+import PlatformAdminOrgQueuePage from '../pages/admin/PlatformAdminOrgQueuePage';
+import OrganizationSettingsPage from '../pages/organization/OrganizationSettingsPage';
+import BranchListPage from '../pages/branch/BranchListPage';
+import BranchDetailPage from '../pages/branch/BranchDetailPage';
+import ServiceabilityCheckerPage from '../pages/branch/ServiceabilityCheckerPage';
+import EmployeeListPage from '../pages/employee/EmployeeListPage';
+import EmployeeDetailPage from '../pages/employee/EmployeeDetailPage';
+import DashboardPage from '../pages/DashboardPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -16,7 +40,137 @@ export const AppRoutes: React.FC = () => {
         <Route path="/" element={<LandingPage />} />
       </Route>
 
-      {/* Primary Routes Wrapped with AppShell */}
+      {/* Auth Flows */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/activate" element={<ActivationPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+      {/* Authenticated Dashboard */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <DashboardPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected Profile Pages */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <ProfilePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/profile"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <ProfilePage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Organization Lifecycle & Management Pages */}
+      <Route
+        path="/register-organization"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <RegisterOrganizationPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/organizations"
+        element={
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={['PLATFORM_ADMIN']}>
+              <AppShell>
+                <PlatformAdminOrgQueuePage />
+              </AppShell>
+            </RoleGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/organization/settings"
+        element={
+          <ProtectedRoute>
+            <RoleGuard allowedRoles={['ORGANIZATION_OWNER', 'ORGANIZATION_ADMIN']}>
+              <AppShell>
+                <OrganizationSettingsPage />
+              </AppShell>
+            </RoleGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Branch & Serviceability Management */}
+      <Route
+        path="/branches"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <BranchListPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/branches/:id"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <BranchDetailPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/serviceability"
+        element={
+          <AppShell>
+            <ServiceabilityCheckerPage />
+          </AppShell>
+        }
+      />
+
+      {/* Employee & RBAC Management */}
+      <Route
+        path="/employees"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <EmployeeListPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employees/:id"
+        element={
+          <ProtectedRoute>
+            <AppShell>
+              <EmployeeDetailPage />
+            </AppShell>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Primary Telemetry & Design System Views */}
       <Route
         path="/status"
         element={

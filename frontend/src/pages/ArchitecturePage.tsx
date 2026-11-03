@@ -3,22 +3,24 @@ import {
   Layers,
   CheckCircle2,
   Clock,
-  ArrowRight,
   Server,
   Database,
   Cpu,
   Shield,
-  Boxes,
-  Truck,
+  Building,
+  GitBranch,
+  Users,
   MapPin,
-  Sparkles,
+  Lock,
+  Mail,
+  Container,
+  Activity,
   FileCheck,
-  CreditCard,
-  BarChart3,
-  Rocket,
+  CheckCircle,
 } from 'lucide-react';
 import Badge from '../components/ui/Badge';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import ProcessFlowStepper from '../components/common/ProcessFlowStepper';
 
 export const ArchitecturePage: React.FC = () => {
   const phases = [
@@ -31,31 +33,31 @@ export const ArchitecturePage: React.FC = () => {
     },
     {
       phase: 'Phase 01',
-      title: 'Multi-Tenant Architecture & Authentication',
-      status: 'READY',
-      badgeVariant: 'info' as const,
-      description: 'Custom User model, JWT authentication, RBAC, tenant isolation, and organization management.',
+      title: 'Authentication & User Management',
+      status: 'COMPLETE',
+      badgeVariant: 'success' as const,
+      description: 'Custom User model, JWT authentication in httpOnly cookies, single-use tokens, audit logging, and RBAC baseline.',
     },
     {
       phase: 'Phase 02',
-      title: 'Fleet & Vehicle Master',
-      status: 'BACKLOG',
-      badgeVariant: 'neutral' as const,
-      description: 'Vehicle registry, capacity dimensions, driver assignments, vehicle telematics hooks.',
+      title: 'Multi-Tenant Architecture, Branch Hierarchy & RBAC',
+      status: 'COMPLETE',
+      badgeVariant: 'success' as const,
+      description: 'Organization registration & approval queue, tenant isolation middleware, branch hierarchy, employee provisioning, role dashboards.',
     },
     {
       phase: 'Phase 03',
       title: 'Parcel Booking & Waybill Generation',
-      status: 'BACKLOG',
-      badgeVariant: 'neutral' as const,
-      description: 'Consignment booking, dimensional weight calculation, waybill and barcode generation.',
+      status: 'READY',
+      badgeVariant: 'info' as const,
+      description: 'Consignment booking, dimensional weight calculation, waybill and barcode generation, sender/recipient address validation.',
     },
     {
       phase: 'Phase 04',
-      title: 'QR Code Custody Transfer Engine',
+      title: 'Fleet & Vehicle Master Management',
       status: 'BACKLOG',
       badgeVariant: 'neutral' as const,
-      description: 'Cryptographic QR verification, scan validation, tamper-evident custody audit logs.',
+      description: 'Vehicle registry, capacity dimensions, driver assignments, vehicle telematics hooks.',
     },
     {
       phase: 'Phase 05',
@@ -108,68 +110,181 @@ export const ArchitecturePage: React.FC = () => {
     },
   ];
 
+  const architecturalPillars = [
+    {
+      icon: Building,
+      title: 'Multi-Tenant Isolation Architecture',
+      tag: 'Phase 02 Live',
+      variant: 'info' as const,
+      items: [
+        'Strict tenant scoping via TenantScopedViewSetMixin enforcing database-level queryset isolation.',
+        'Organization registration with audited approval queue (PENDING → APPROVED / REJECTED / SUSPENDED).',
+        'Anti-spoofing validation on all mutations preventing cross-tenant injection.',
+        'Zero cross-tenant data leakage across detail lookups, listings, updates, and metrics.',
+      ],
+    },
+    {
+      icon: GitBranch,
+      title: 'Postal Branch Network & Serviceability',
+      tag: 'Phase 02 Live',
+      variant: 'success' as const,
+      items: [
+        'Physical logistics hubs, sorting depots, and transit facilities with unique branch codes.',
+        'Postal code service area mapping with intra-organization overlap conflict detection.',
+        'Public Serviceability Checker API (/branches/check-serviceability/) for instant routing validation.',
+        'Branch-scoped operational views restricting branch managers to assigned physical hubs.',
+      ],
+    },
+    {
+      icon: Users,
+      title: '6-Tier RBAC & Workforce Lifecycle',
+      tag: 'Phase 02 Live',
+      variant: 'teal' as const,
+      items: [
+        'Rigorous role hierarchy: PLATFORM_ADMIN, ORGANIZATION_OWNER, ORGANIZATION_ADMIN, BRANCH_MANAGER, EMPLOYEE, CUSTOMER.',
+        'Secure staff provisioning with cryptographically random temporary credentials and onboarding invitations.',
+        'Privilege escalation barriers: only Owners appoint Org Admins; Branch Managers appoint branch staff only.',
+        'Atomic employee deactivation with immediate session invalidation and membership suspension.',
+      ],
+    },
+    {
+      icon: Lock,
+      title: 'Enterprise Authentication & Security',
+      tag: 'Phase 01 Live',
+      variant: 'warning' as const,
+      items: [
+        'Custom User model with case-insensitive unique email index and UUID primary keys.',
+        'Stateless short-lived access JWT + rotating refresh token in httpOnly, SameSite=Lax, Secure cookies.',
+        'Single-use SHA-256 hashed activation and password reset tokens with 15-minute expiration.',
+        'Brute-force account lockout (5 attempts / 15-minute freeze) and tamper-evident audit logging.',
+      ],
+    },
+  ];
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 py-8">
       {/* Title Header */}
-      <div className="pb-4 border-b border-slate-800">
-        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
-          <Layers className="w-6 h-6 text-teal-400" />
-          <span>System Architecture & 12-Phase Roadmap</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          High-level architectural blueprint and phase delivery tracker for the LogiFlows logistics platform.
-        </p>
+      <div className="pb-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+            <Layers className="w-6 h-6 text-teal-400" />
+            <span>System Architecture & 12-Phase Roadmap</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Enterprise multi-tenant postal and B2B delivery management platform architectural blueprint.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="teal" size="sm" className="font-mono">v1.0.0-phase-02</Badge>
+          <Badge variant="success" size="sm">Phase 01 & 02 Verified</Badge>
+        </div>
       </div>
 
-      {/* Architecture Topology */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Server className="w-5 h-5 text-blue-400" />
-              <CardTitle>Django Backend Layer</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs text-slate-300">
-            <p>• Modular app architecture under <span className="font-mono text-blue-400">apps/</span></p>
-            <p>• Clean separation of settings (<span className="font-mono text-slate-400">base, dev, test</span>)</p>
-            <p>• Custom User model inheriting <span className="font-mono text-teal-400">AbstractUser</span></p>
-            <p>• Standardized error envelopes via DRF exception handler</p>
-            <p>• OpenAPI 3.0 auto-schema generation via drf-spectacular</p>
-          </CardContent>
-        </Card>
+      {/* Interactive Process Flow Stepper */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-blue-400" />
+            <span>End-to-End Operational Logistics Progression</span>
+          </h2>
+          <span className="text-xs text-slate-500">Live Process State Tracker</span>
+        </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+          <ProcessFlowStepper />
+        </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Database className="w-5 h-5 text-emerald-400" />
-              <CardTitle>PostgreSQL 16 Persistence</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs text-slate-300">
-            <p>• Dedicated database <span className="font-mono text-emerald-400">logiflows_db</span></p>
-            <p>• Dedicated user <span className="font-mono text-slate-400">logiflows_user</span></p>
-            <p>• Named persistent Docker volume <span className="font-mono text-slate-400">postgres_data</span></p>
-            <p>• Health check probe using <span className="font-mono text-slate-400">pg_isready</span></p>
-            <p>• Deterministic migration execution before app boot</p>
-          </CardContent>
-        </Card>
+      {/* Core Architectural Pillars */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4 flex items-center gap-2">
+          <Shield className="w-4 h-4 text-emerald-400" />
+          <span>Core Architectural Framework & Security Invariants</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {architecturalPillars.map((p, idx) => {
+            const Icon = p.icon;
+            return (
+              <Card key={idx} className="p-5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-lg bg-slate-800 border border-slate-700 text-teal-400">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-sm font-bold text-white">{p.title}</h3>
+                    </div>
+                    <Badge variant={p.variant} size="sm">{p.tag}</Badge>
+                  </div>
+                  <ul className="space-y-2 mt-4 text-xs text-slate-300">
+                    {p.items.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <CheckCircle className="w-3.5 h-3.5 text-teal-400 mt-0.5 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Cpu className="w-5 h-5 text-purple-400" />
-              <CardTitle>React 18 Frontend Layer</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-2 text-xs text-slate-300">
-            <p>• React 18 + TypeScript + Vite modern build tool</p>
-            <p>• Tailwind CSS design system with curated Navy/Blue/Teal tokens</p>
-            <p>• React Router declarative client-side routing</p>
-            <p>• TanStack Query centralized server-state caching</p>
-            <p>• Centralized Axios instance with environment proxy</p>
-          </CardContent>
-        </Card>
+      {/* Infrastructure & Persistence Topology */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4 flex items-center gap-2">
+          <Container className="w-4 h-4 text-purple-400" />
+          <span>Deployment Topology & Stack Specifications</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Server className="w-5 h-5 text-blue-400" />
+                <CardTitle>Django Backend Layer</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs text-slate-300">
+              <p>• Modular app architecture: <span className="font-mono text-blue-400">accounts, organizations, branches, employees, core</span></p>
+              <p>• Strict settings hierarchy: <span className="font-mono text-slate-400">base.py, development.py, production.py</span></p>
+              <p>• Production fail-fast guard on missing <span className="font-mono text-teal-400">SECRET_KEY</span> and database credentials</p>
+              <p>• Standardized JSON error envelopes: <span className="font-mono text-slate-400">error.code, error.message, error.details</span></p>
+              <p>• Automated OpenAPI 3.0 schema generation via <span className="font-mono text-teal-400">drf-spectacular</span></p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Database className="w-5 h-5 text-emerald-400" />
+                <CardTitle>PostgreSQL 16 Persistence</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs text-slate-300">
+              <p>• Dedicated database <span className="font-mono text-emerald-400">logiflows_db</span> with non-root user</p>
+              <p>• Named persistent Docker volume <span className="font-mono text-slate-400">postgres_data</span> with healthcheck</p>
+              <p>• Composite database indexes on tenant foreign keys and search fields</p>
+              <p>• Deterministic migration execution before container initialization</p>
+              <p>• Row-level isolation enforced via tenant foreign keys on all operational models</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-purple-400" />
+                <CardTitle>React 18 Frontend Layer</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2 text-xs text-slate-300">
+              <p>• React 18 + TypeScript + Vite modern build toolchain</p>
+              <p>• Tailwind CSS enterprise design system with curated Navy/Slate/Teal palette</p>
+              <p>• TenantContext & AuthContext providing global state and active tenant switcher</p>
+              <p>• TanStack Query caching with optimistic updates and background refetching</p>
+              <p>• Centralized Axios client with automatic Bearer token injection and 401 refresh</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* 12-Phase Roadmap Table */}
@@ -179,7 +294,7 @@ export const ArchitecturePage: React.FC = () => {
             <div>
               <CardTitle>Complete 12-Phase Delivery Roadmap</CardTitle>
               <div className="text-xs text-slate-400 mt-1">
-                Strict phase gating guarantees architectural integrity before feature modules are unlocked.
+                Strict phase gating guarantees architectural integrity before downstream feature modules are unlocked.
               </div>
             </div>
             <Badge variant="teal">Agile Sprint Plan</Badge>

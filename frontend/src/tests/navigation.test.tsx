@@ -43,7 +43,7 @@ describe('Frontend Navigation & Routing Test Suite', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/Smart Postal &.*Logistics Management/i);
-    expect(screen.getByText('Phase 00 Foundation Active')).toBeInTheDocument();
+    expect(screen.getByText('Phase 02 Multi-Tenant Network Active')).toBeInTheDocument();
   });
 
   it('renders health/status page on /status with live DB telemetry', () => {

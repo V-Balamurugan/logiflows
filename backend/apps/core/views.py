@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 
 logger = logging.getLogger('apps.core')
 
@@ -20,12 +20,47 @@ class HealthCheckView(APIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
-        tags=['System Health'],
-        summary='System & Database Health Check',
-        description='Validates backend and database availability with latency measurements.',
+        tags=['03 - System Health & Diagnostics'],
+        summary='System & Database Health Check Probe',
+        description=(
+            'Validates backend application health and PostgreSQL database readiness.\n\n'
+            'Executes a live `SELECT 1;` probe query against the database cluster and returns '
+            'query latency in milliseconds alongside server environment metadata.'
+        ),
         responses={
-            200: OpenApiResponse(description='Backend and PostgreSQL are fully operational.'),
-            503: OpenApiResponse(description='Database connection failed.'),
+            200: OpenApiResponse(
+                description='Backend and PostgreSQL database are fully operational.',
+                examples=[
+                    OpenApiExample(
+                        name='Healthy System Response',
+                        value={
+                            'status': 'healthy',
+                            'db': 'ok',
+                            'latency_ms': 1.45,
+                            'environment': 'development',
+                            'version': '1.0.0-phase-01',
+                            'timestamp': '2026-10-31T19:00:00.000000Z',
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            503: OpenApiResponse(
+                description='PostgreSQL database connection failed.',
+                examples=[
+                    OpenApiExample(
+                        name='Database Down Response',
+                        value={
+                            'error': {
+                                'code': 'DATABASE_UNAVAILABLE',
+                                'message': 'Database readiness probe failed.',
+                                'details': 'could not connect to server: Connection refused',
+                            }
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
         },
     )
     def get(self, request, *args, **kwargs):
@@ -62,7 +97,7 @@ class HealthCheckView(APIView):
                 'db': 'ok',
                 'latency_ms': latency_ms,
                 'environment': getattr(settings, 'ENVIRONMENT', 'development'),
-                'version': '1.0.0-phase-00',
+                'version': '1.0.0-phase-02',
                 'timestamp': timezone.now().isoformat(),
             },
             status=status.HTTP_200_OK,

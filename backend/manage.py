@@ -9,6 +9,12 @@ def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.development')
 
+    # Ensure UTF-8 output encoding across Windows and POSIX environments
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
     # Automatically resolve project virtualenv if running with global python without manual activation
     base_dir = Path(__file__).resolve().parent
     for candidate in [base_dir.parent / '.venv', base_dir / '.venv']:

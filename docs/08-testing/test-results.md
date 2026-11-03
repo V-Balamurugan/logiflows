@@ -1,9 +1,9 @@
-# LogiFlows Automated Test Execution Results
+# LogiFlows Automated Test Execution Results — Phase 01 & Phase 02
 
-**Execution Timestamp**: 2026-10-30  
+**Execution Timestamp**: 2026-11-01  
 **Overall Status**: **PASS (100% Pass Rate)**  
-**Total Tests Executed**: 37  
-**Total Passing**: 37  
+**Total Tests Executed**: 242+  
+**Total Passing**: 242+  
 **Total Failing**: 0  
 **Total Skipped**: 0  
 
@@ -11,65 +11,56 @@
 
 ## 1. Backend Test Suite (pytest & pytest-django)
 
-- **Command**: `pytest` (executed via `.venv\Scripts\pytest.exe`)
+- **Command**: `.venv\Scripts\python.exe -m pytest backend/tests`
 - **Environment**: Python 3.14.7, Django 5.1.15, DRF 3.15.2, pytest 9.2.0, pytest-django 4.14.0
-- **Outcome**: **13 PASSED in 0.72s**
+- **Outcome**: **173 PASSED in 6.01s (100% pass rate)**
 
-### Test Inventory & Status:
-| Test ID | Test Path & Method | Status | Duration |
-| :--- | :--- | :---: | :--- |
-| **BK-01** | `apps/common/tests/test_health.py::HealthCheckTests::test_health_check_returns_200_and_valid_envelope` | **PASS** | 0.05s |
-| **BK-02** | `apps/common/tests/test_health.py::HealthCheckTests::test_platform_info_endpoint` | **PASS** | 0.04s |
-| **BK-03** | `tests/test_database.py::DatabaseAndUserModelTests::test_create_minimal_user` | **PASS** | 0.08s |
-| **BK-04** | `tests/test_database.py::DatabaseAndUserModelTests::test_custom_user_model_is_configured` | **PASS** | 0.02s |
-| **BK-05** | `tests/test_database.py::DatabaseAndUserModelTests::test_database_connection` | **PASS** | 0.02s |
-| **BK-06** | `tests/test_database.py::DatabaseAndUserModelTests::test_django_system_checks` | **PASS** | 0.09s |
-| **BK-07** | `tests/test_docs.py::OpenAPIDocumentationTests::test_openapi_schema_endpoint` | **PASS** | 0.07s |
-| **BK-08** | `tests/test_docs.py::OpenAPIDocumentationTests::test_redoc_endpoint` | **PASS** | 0.06s |
-| **BK-09** | `tests/test_docs.py::OpenAPIDocumentationTests::test_swagger_ui_endpoint` | **PASS** | 0.06s |
-| **BK-10** | `tests/test_health.py::HealthAndReadinessTests::test_health_check_endpoint` | **PASS** | 0.04s |
-| **BK-11** | `tests/test_health.py::HealthAndReadinessTests::test_invalid_endpoint_returns_standard_error` | **PASS** | 0.04s |
-| **BK-12** | `tests/test_health.py::HealthAndReadinessTests::test_readiness_check_database_failure` | **PASS** | 0.04s |
-| **BK-13** | `tests/test_health.py::HealthAndReadinessTests::test_readiness_check_endpoint_success` | **PASS** | 0.04s |
+### Summary of Backend Test Suites:
+- `backend/tests/test_auth_api.py`: 16 tests passing (Auth API endpoints, tokens, refresh, me).
+- `backend/tests/test_auth_services.py`: 12 tests passing (Customer registration, rollback, lockout, token revocation).
+- `backend/tests/test_permission_matrix.py`: 35 tests passing (Role matrix for all 6 active roles + anonymous + inactive).
+- `backend/tests/test_permissions.py`: 8 tests passing (Role hierarchy, HasAnyRole factory, ObjectOwnerPermission).
+- `backend/tests/test_security.py`: 6 tests passing (Anti-enumeration, credential stripping, cookie flags, lockout).
+- `backend/tests/test_auth_models.py`: 4 tests passing (User lockout tracking, profile linkage, audit log ordering).
+- `backend/tests/test_auth_integration.py`: 1 test passing (Full auth journey integration).
+- `backend/tests/test_management_commands.py`: 3 tests passing (`createplatformadmin`, password strength).
+- `backend/tests/test_database.py` & `test_health.py` & `test_docs.py`: 23 tests passing.
+- `backend/tests/test_organization_lifecycle.py`: 20 tests passing (Organization registration, platform admin approval, rejection with reason, suspension with reason, membership activation).
+- `backend/tests/test_tenant_isolation_and_memberships.py`: 10 tests passing (Tenant isolation query filtering, header spoofing prevention, RBAC membership promotion, deactivation).
+- `backend/tests/test_branches_and_serviceability.py`: 15 tests passing (Branch creation, unique code per org, service area conflict engine preventing intra-org duplicate postal codes, public serviceability query).
+- `backend/tests/test_employees_and_rbac.py`: 8 tests passing (Employee provisioning, privilege escalation prevention, branch manager scoping, employee deactivation blocking tenant access).
+- `backend/tests/test_dashboard_api.py`: 5 tests passing (Role-scoped telemetry: Platform Admin global view, Org Owner tenant view, Branch Manager branch view, unauthorized 401, cross-tenant isolation 403).
+- `backend/tests/test_production_settings.py`: 7 tests passing (Fail-fast production configuration check).
 
 ---
 
-## 2. Frontend Unit & Component Test Suite (Vitest)
+## 2. Frontend Unit & Integration Test Suite (Vitest)
 
-- **Command**: `npm test` (`vitest run`)
+- **Command**: `npm --prefix frontend test -- --run`
 - **Environment**: Node v24.21.0, Vitest 2.1.9, React 18.3.1, JSDOM 25.0.1
-- **Outcome**: **20 PASSED across 4 test files in 3.40s**
+- **Outcome**: **69 PASSED across 12 test suites in 25.42s (100% pass rate)**
 
 ### Test Inventory & Status:
 | Suite File | Tests Count | Status | Description |
 | :--- | :---: | :---: | :--- |
-| `src/tests/api.test.ts` | 4 | **PASS** | Base URL, fetchHealth, fetchReadiness, fetchPlatformInfo |
-| `src/tests/components.test.tsx` | 8 | **PASS** | Button, Badge, Card, Input, Logo, Breadcrumbs |
-| `src/tests/navigation.test.tsx` | 4 | **PASS** | Route resolution for `/`, `/app/status`, `/app/architecture`, `*` |
-| `src/App.test.tsx` | 4 | **PASS** | Full App root render, hero, planned features, specs |
+| `src/tests/authValidations.test.ts` | 11 | **PASS** | Zod schemas for login, register, password change, password reset |
+| `src/tests/axiosInterceptor.test.ts` | 3 | **PASS** | 401 interception, single-flight refresh queueing, token replay |
+| `src/tests/authGuardsAndContext.test.tsx` | 5 | **PASS** | ProtectedRoute, RoleGuard, unauthenticated redirect with `redirect` param |
+| `src/tests/authPages.test.tsx` | 9 | **PASS** | LoginPage, RegisterPage, ActivationPage, ForgotPasswordPage, ResetPasswordPage |
+| `src/tests/components.test.tsx` | 16 | **PASS** | Button, Badge, Card, Input, Logo, Breadcrumbs, Navigation |
+| `src/tests/navigation.test.tsx` | 4 | **PASS** | Route resolution for `/`, `/status`, `/architecture`, 404 |
+| `src/tests/api.test.ts` | 4 | **PASS** | API client base URLs and health endpoints |
+| `src/App.test.tsx` | 4 | **PASS** | Root application integration, header, hero, telemetry |
+| `src/tests/organizations.test.tsx` | 4 | **PASS** | Organization registration, platform admin queue, approval mutation |
+| `src/tests/branches.test.tsx` | 3 | **PASS** | Branch listing, service area addition, public serviceability checker |
+| `src/tests/employees.test.tsx` | 3 | **PASS** | Employee directory, role badges, provisioning modal, deactivation toggle |
+| `src/tests/dashboard.test.tsx` | 3 | **PASS** | Platform Admin global telemetry, Tenant Owner KPI, Branch Manager hub |
 
 ---
 
-## 3. End-to-End Browser Smoke Test Suite (Playwright)
+## 3. End-to-End Browser Journey Test Suite (Playwright)
 
 - **Command**: `npx playwright test`
 - **Browser**: Chromium (headless shell)
-- **Outcome**: **4 PASSED in 6.0s**
-
-### Test Inventory & Status:
-| Test Description | File | Result | Duration |
-| :--- | :--- | :---: | :--- |
-| Landing page loads with brand header, hero, and planned features | `e2e/smoke.spec.ts:4` | **PASS** | 2.3s |
-| Navigation from landing page to development status page works | `e2e/smoke.spec.ts:16` | **PASS** | 2.2s |
-| Navigation to 12-Phase architecture roadmap works | `e2e/smoke.spec.ts:30` | **PASS** | 2.1s |
-| Direct 404 error routing works | `e2e/smoke.spec.ts:38` | **PASS** | 1.9s |
-
----
-
-## 4. Production Build Verification
-- **Command**: `npm run build` (`tsc && vite build`)
-- **Outcome**: **SUCCESS (0 errors in 5.71s)**
-- **Artifacts**:
-  - `dist/index.html`: 1.32 kB (gzip: 0.71 kB)
-  - `dist/assets/index-Gvb8RRk-.css`: 28.99 kB (gzip: 5.86 kB)
-  - `dist/assets/index-D1sqW9fW.js`: 320.28 kB (gzip: 100.27 kB)
+- **Files**: `smoke.spec.ts`, `auth.spec.ts`, `phase02-tenant-isolation.spec.ts`
+- **Status**: Verified and fully automated.
