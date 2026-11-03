@@ -24,6 +24,7 @@ import Modal from '../../components/ui/Modal';
 import { useTenant } from '../../context/TenantContext';
 import { useAuth } from '../../context/AuthContext';
 import { getBranchesApi, createBranchApi } from '../../api/branchApi';
+import { getOrganizationsApi } from '../../api/organizationApi';
 import { Branch } from '../../types/branch';
 
 const branchSchema = z.object({
@@ -50,19 +51,33 @@ export const BranchListPage: React.FC = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
+  const [selectedOrgFilter, setSelectedOrgFilter] = useState<string>('');
+  const [modalOrgId, setModalOrgId] = useState<string>('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const isPlatformAdmin = user?.role === 'PLATFORM_ADMIN';
   const isOrgAdmin =
-    user?.role === 'PLATFORM_ADMIN' ||
+    isPlatformAdmin ||
     currentMembership?.role === 'ORGANIZATION_OWNER' ||
     currentMembership?.role === 'ORGANIZATION_ADMIN';
 
+  const { data: orgsData } = useQuery({
+    queryKey: ['approved-organizations-select'],
+    queryFn: () => getOrganizationsApi({ status: 'APPROVED' }),
+    enabled: isPlatformAdmin,
+  });
+
+  const approvedOrgs = orgsData?.results || [];
+  const effectiveOrgId = isPlatformAdmin
+    ? (selectedOrgFilter || undefined)
+    : (currentOrganizationId || undefined);
+
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['branches', currentOrganizationId, searchQuery, statusFilter],
+    queryKey: ['branches', effectiveOrgId, searchQuery, statusFilter],
     queryFn: () =>
       getBranchesApi({
-        organization_id: currentOrganizationId || undefined,
+        organization_id: effectiveOrgId,
         search: searchQuery || undefined,
         status: statusFilter === 'ALL' ? undefined : statusFilter,
       }),
@@ -90,12 +105,15 @@ export const BranchListPage: React.FC = () => {
 
   const createMutation = useMutation({
     mutationFn: (values: BranchFormValues) => {
-      if (!currentOrganizationId) {
-        throw new Error('No active organization context found.');
+      const targetOrg = isPlatformAdmin
+        ? (modalOrgId || selectedOrgFilter || approvedOrgs[0]?.id)
+        : currentOrganizationId;
+      if (!targetOrg) {
+        throw new Error('Please select an active organization context.');
       }
       return createBranchApi({
         ...values,
-        organization: currentOrganizationId,
+        organization: targetOrg,
       });
     },
     onSuccess: () => {
@@ -108,7 +126,9 @@ export const BranchListPage: React.FC = () => {
       setServerError(
         err.response?.data?.error?.message ||
           err.response?.data?.code?.[0] ||
+          err.response?.data?.organization?.[0] ||
           err.response?.data?.message ||
+          err.message ||
           'Failed to create branch.'
       );
     },
@@ -158,20 +178,37 @@ export const BranchListPage: React.FC = () => {
       {/* Filter and Search Bar */}
       <Card className="p-4 mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex gap-2">
-            {(['ALL', 'ACTIVE', 'INACTIVE'] as const).map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-all ${
-                  statusFilter === st
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-                }`}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex gap-2">
+              {(['ALL', 'ACTIVE', 'INACTIVE'] as const).map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-all ${
+                    statusFilter === st
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+
+            {isPlatformAdmin && approvedOrgs.length > 0 && (
+              <select
+                value={selectedOrgFilter}
+                onChange={(e) => setSelectedOrgFilter(e.target.value)}
+                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-blue-500"
               >
-                {st}
-              </button>
-            ))}
+                <option value="">All Organizations</option>
+                {approvedOrgs.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name} ({org.code})
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="relative w-full md:w-72">
@@ -284,6 +321,25 @@ export const BranchListPage: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {isPlatformAdmin && (
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                Target Organization *
+              </label>
+              <select
+                value={modalOrgId || selectedOrgFilter || approvedOrgs[0]?.id || ''}
+                onChange={(e) => setModalOrgId(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+              >
+                {approvedOrgs.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name} ({org.code})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">

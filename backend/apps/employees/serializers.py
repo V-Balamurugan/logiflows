@@ -23,6 +23,14 @@ class EmployeeProfileSerializer(serializers.ModelSerializer):
     branch_name = serializers.CharField(source='membership.branch.name', read_only=True, allow_null=True)
     branch_code = serializers.CharField(source='membership.branch.code', read_only=True, allow_null=True)
     is_active = serializers.BooleanField(source='membership.is_active', read_only=True)
+    joined_date = serializers.SerializerMethodField()
+
+    def get_joined_date(self, obj):
+        if not obj.joined_date:
+            return None
+        if hasattr(obj.joined_date, 'date'):
+            return obj.joined_date.date().isoformat()
+        return obj.joined_date.isoformat()
 
     class Meta:
         model = EmployeeProfile
@@ -75,6 +83,7 @@ class EmployeeCreateSerializer(serializers.Serializer):
     """
     Serializer for provisioning or inviting a new employee into an organization.
     """
+    organization_id = serializers.UUIDField(required=False, allow_null=True)
     email = serializers.EmailField(required=True)
     first_name = serializers.CharField(max_length=150, required=True)
     last_name = serializers.CharField(max_length=150, required=True)
@@ -91,6 +100,17 @@ class EmployeeCreateSerializer(serializers.Serializer):
     designation = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
     phone = serializers.CharField(max_length=30, required=False, allow_blank=True, default='')
     temporary_password = serializers.CharField(min_length=8, required=False, allow_blank=True)
+
+    def to_internal_value(self, data):
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+        if data.get('branch_id') == '':
+            data['branch_id'] = None
+        if data.get('organization_id') == '':
+            data['organization_id'] = None
+        return super().to_internal_value(data)
 
     def validate_employee_code(self, value):
         code = value.strip().upper()

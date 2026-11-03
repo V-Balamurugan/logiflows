@@ -67,3 +67,4 @@ describe('ProcessFlowStepper Component Suite', () => {
     expect(settingsLink).toHaveAttribute('href', '/organization/settings');
   });
 });
+

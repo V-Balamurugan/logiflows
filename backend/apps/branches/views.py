@@ -45,6 +45,16 @@ class BranchViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         org = serializer.validated_data.get('organization')
+        if not org:
+            # Fall back to user's first active organization if not explicitly supplied
+            user_membership = OrganizationMembership.objects.filter(
+                user=user,
+                is_active=True,
+            ).first()
+            if not user_membership:
+                raise ValidationError({'organization': 'Organization context is required.'})
+            org = user_membership.organization
+            serializer.validated_data['organization'] = org
 
         # Anti-spoofing validation: user must have admin rights in this org
         self.validate_tenant_assignment(org)

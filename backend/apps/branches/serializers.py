@@ -1,7 +1,7 @@
 import re
 from rest_framework import serializers
 from .models import Branch, BranchStatus, ServiceArea
-from apps.organizations.models import Organization, OrganizationStatus
+from apps.organizations.models import Organization, OrganizationMembership, OrganizationStatus
 from apps.accounts.models import User, UserRole
 
 
@@ -71,12 +71,35 @@ class BranchSerializer(serializers.ModelSerializer):
     Comprehensive Branch serializer with operational metadata, manager details,
     and service area counts.
     """
+    organization = serializers.PrimaryKeyRelatedField(
+        queryset=Organization.objects.all(),
+        required=False,
+    )
     organization_code = serializers.CharField(source='organization.code', read_only=True)
     organization_name = serializers.CharField(source='organization.name', read_only=True)
     manager_name = serializers.CharField(source='manager.full_name', read_only=True, allow_null=True)
     manager_email = serializers.EmailField(source='manager.email', read_only=True, allow_null=True)
     service_areas = ServiceAreaSerializer(many=True, read_only=True)
     service_area_count = serializers.SerializerMethodField()
+
+    def to_internal_value(self, data):
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+
+        if not data.get('organization') and 'request' in self.context:
+            request = self.context['request']
+            user = getattr(request, 'user', None)
+            if user and user.is_authenticated and user.role != UserRole.PLATFORM_ADMIN:
+                membership = OrganizationMembership.objects.filter(
+                    user=user,
+                    is_active=True,
+                ).first()
+                if membership:
+                    data['organization'] = str(membership.organization_id)
+
+        return super().to_internal_value(data)
 
     class Meta:
         model = Branch

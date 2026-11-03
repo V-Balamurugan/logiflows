@@ -26,6 +26,7 @@ import { useTenant } from '../../context/TenantContext';
 import { useAuth } from '../../context/AuthContext';
 import { getEmployeesApi, createEmployeeApi } from '../../api/employeeApi';
 import { getBranchesApi } from '../../api/branchApi';
+import { getOrganizationsApi } from '../../api/organizationApi';
 import { Employee, EmployeeStatus, CreateEmployeeInput } from '../../types/employee';
 
 const createEmployeeSchema = z.object({
@@ -54,14 +55,28 @@ export const EmployeeListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [selectedOrgFilter, setSelectedOrgFilter] = useState<string>('');
+  const [modalOrgId, setModalOrgId] = useState<string>('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const isPlatformAdmin = user?.role === 'PLATFORM_ADMIN';
   const isOwner =
-    user?.role === 'PLATFORM_ADMIN' || currentMembership?.role === 'ORGANIZATION_OWNER';
+    isPlatformAdmin || currentMembership?.role === 'ORGANIZATION_OWNER';
   const isOrgAdmin = isOwner || currentMembership?.role === 'ORGANIZATION_ADMIN';
   const isBranchManager = currentMembership?.role === 'BRANCH_MANAGER';
   const canManage = isOrgAdmin || isBranchManager;
+
+  const { data: orgsData } = useQuery({
+    queryKey: ['approved-organizations-select'],
+    queryFn: () => getOrganizationsApi({ status: 'APPROVED' }),
+    enabled: isPlatformAdmin,
+  });
+
+  const approvedOrgs = orgsData?.results || [];
+  const effectiveOrgId = isPlatformAdmin
+    ? (selectedOrgFilter || undefined)
+    : (currentOrganizationId || undefined);
 
   const {
     data: employeesData,
@@ -71,29 +86,33 @@ export const EmployeeListPage: React.FC = () => {
   } = useQuery({
     queryKey: [
       'employees',
-      currentOrganizationId,
+      effectiveOrgId,
       roleFilter,
       statusFilter,
       searchQuery,
     ],
     queryFn: () =>
       getEmployeesApi({
-        organization_id: currentOrganizationId || undefined,
+        organization_id: effectiveOrgId,
         role: roleFilter !== 'ALL' ? roleFilter : undefined,
         status: statusFilter !== 'ALL' ? statusFilter : undefined,
         search: searchQuery.trim() || undefined,
       }),
-    enabled: !!currentOrganizationId || user?.role === 'PLATFORM_ADMIN',
+    enabled: !!effectiveOrgId || isPlatformAdmin,
   });
 
+  const modalTargetOrgId = isPlatformAdmin
+    ? (modalOrgId || selectedOrgFilter || approvedOrgs[0]?.id || undefined)
+    : (currentOrganizationId || undefined);
+
   const { data: branchesData } = useQuery({
-    queryKey: ['branches-select', currentOrganizationId],
+    queryKey: ['branches-select', modalTargetOrgId],
     queryFn: () =>
       getBranchesApi({
-        organization_id: currentOrganizationId || undefined,
+        organization_id: modalTargetOrgId,
         status: 'ACTIVE',
       }),
-    enabled: isCreateModalOpen && (!!currentOrganizationId || user?.role === 'PLATFORM_ADMIN'),
+    enabled: isCreateModalOpen && (!!modalTargetOrgId || isPlatformAdmin),
   });
 
   const {
@@ -123,7 +142,9 @@ export const EmployeeListPage: React.FC = () => {
     onError: (err: any) => {
       const msg =
         err.response?.data?.error?.message ||
+        err.response?.data?.organization_id?.[0] ||
         err.response?.data?.detail ||
+        err.message ||
         'Failed to provision employee. Check input details.';
       setServerError(msg);
     },
@@ -131,7 +152,17 @@ export const EmployeeListPage: React.FC = () => {
 
   const onSubmit = (values: CreateEmployeeFormValues) => {
     setServerError(null);
+    const targetOrgId = isPlatformAdmin
+      ? (modalOrgId || selectedOrgFilter || approvedOrgs[0]?.id)
+      : currentOrganizationId;
+
+    if (!targetOrgId && isPlatformAdmin) {
+      setServerError('Please select an organization context for this employee.');
+      return;
+    }
+
     const payload: CreateEmployeeInput = {
+      organization_id: targetOrgId || undefined,
       email: values.email.trim(),
       first_name: values.first_name.trim(),
       last_name: values.last_name.trim(),
@@ -215,6 +246,21 @@ export const EmployeeListPage: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Role Filter */}
+            {isPlatformAdmin && approvedOrgs.length > 0 && (
+              <select
+                value={selectedOrgFilter}
+                onChange={(e) => setSelectedOrgFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="">All Organizations</option>
+                {approvedOrgs.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name} ({org.code})
+                  </option>
+                ))}
+              </select>
+            )}
+
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
@@ -390,6 +436,25 @@ export const EmployeeListPage: React.FC = () => {
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>{serverError}</span>
+            </div>
+          )}
+
+          {isPlatformAdmin && (
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Target Organization *
+              </label>
+              <select
+                value={modalOrgId || selectedOrgFilter || approvedOrgs[0]?.id || ''}
+                onChange={(e) => setModalOrgId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                {approvedOrgs.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name} ({org.code})
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 

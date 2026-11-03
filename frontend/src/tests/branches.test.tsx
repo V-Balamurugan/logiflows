@@ -84,6 +84,17 @@ describe('Module 4 & 5: Branches and Service Areas Frontend Component Tests', ()
         is_active: true,
       },
     ]);
+    (orgApi.getOrganizationsApi as any).mockResolvedValue({
+      count: 1,
+      results: [
+        {
+          id: 'org-123',
+          name: 'Apex Express',
+          code: 'APEX-EXP',
+          status: 'APPROVED',
+        },
+      ],
+    });
   });
 
   it('renders branch list with hubs and service area badges', async () => {
@@ -187,6 +198,131 @@ describe('Module 4 & 5: Branches and Service Areas Frontend Component Tests', ()
     await waitFor(() => {
       expect(screen.getByText(/Postal Code 110006 is Serviceable!/i)).toBeInTheDocument();
       expect(screen.getByText('Delhi North Hub')).toBeInTheDocument();
+    });
+  });
+
+  it('allows organization owner to open modal and create a new branch successfully', async () => {
+    (branchApi.getBranchesApi as any).mockResolvedValue({
+      count: 0,
+      results: [],
+    });
+    (branchApi.createBranchApi as any).mockResolvedValue({
+      id: 'branch-new',
+      code: 'DEL-SOUTH',
+      name: 'Delhi South Hub',
+      organization: 'org-123',
+    });
+
+    renderWithProviders(<BranchListPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add Branch/i })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /Add Branch/i }));
+
+    expect(screen.getByText('Create New Postal / Logistics Branch')).toBeInTheDocument();
+
+    await userEvent.type(screen.getByPlaceholderText('e.g. DEL-NORTH'), 'DEL-SOUTH');
+    await userEvent.type(screen.getByPlaceholderText('e.g. Delhi North Hub'), 'Delhi South Hub');
+    await userEvent.type(
+      screen.getByPlaceholderText('e.g. Plot 4, Transport Nagar, Kashmere Gate'),
+      'Plot 10, Okhla Phase 2'
+    );
+    await userEvent.type(screen.getByPlaceholderText('110006'), '110020');
+    const delhiInputs = screen.getAllByPlaceholderText('Delhi');
+    await userEvent.type(delhiInputs[0], 'New Delhi');
+    await userEvent.type(delhiInputs[1], 'NCR');
+
+    await userEvent.click(screen.getByRole('button', { name: /^Create Branch$/i }));
+
+    await waitFor(() => {
+      expect(branchApi.createBranchApi).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organization: 'org-123',
+          code: 'DEL-SOUTH',
+          name: 'Delhi South Hub',
+          address: 'Plot 10, Okhla Phase 2',
+          pincode: '110020',
+        })
+      );
+    });
+  });
+
+  it('allows platform admin to create a branch selecting target organization', async () => {
+    (branchApi.getBranchesApi as any).mockResolvedValue({
+      count: 0,
+      results: [],
+    });
+    (branchApi.createBranchApi as any).mockResolvedValue({
+      id: 'branch-pa-1',
+      code: 'DEL-EAST',
+      name: 'Delhi East Hub',
+      organization: 'org-123',
+    });
+
+    const mockAuthPlatformAdmin = {
+      user: {
+        id: 'user-pa',
+        email: 'pa@logiflows.test',
+        full_name: 'Platform Admin',
+        role: 'PLATFORM_ADMIN' as const,
+        is_active: true,
+        created_at: '2026-01-01T00:00:00Z',
+      },
+      isAuthenticated: true,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      updateUser: vi.fn(),
+      refreshUser: vi.fn(),
+    };
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/']}>
+          <AuthContext.Provider value={mockAuthPlatformAdmin}>
+            <TenantProvider>
+              <BranchListPage />
+            </TenantProvider>
+          </AuthContext.Provider>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add Branch/i })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /Add Branch/i }));
+
+    expect(screen.getByText('Target Organization *')).toBeInTheDocument();
+
+    await userEvent.type(screen.getByPlaceholderText('e.g. DEL-NORTH'), 'DEL-EAST');
+    await userEvent.type(screen.getByPlaceholderText('e.g. Delhi North Hub'), 'Delhi East Hub');
+    await userEvent.type(
+      screen.getByPlaceholderText('e.g. Plot 4, Transport Nagar, Kashmere Gate'),
+      'Mayur Vihar Phase 1'
+    );
+    await userEvent.type(screen.getByPlaceholderText('110006'), '110091');
+    const delhiInputs = screen.getAllByPlaceholderText('Delhi');
+    await userEvent.type(delhiInputs[0], 'East Delhi');
+    await userEvent.type(delhiInputs[1], 'Delhi');
+
+    await userEvent.click(screen.getByRole('button', { name: /^Create Branch$/i }));
+
+    await waitFor(() => {
+      expect(branchApi.createBranchApi).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organization: 'org-123',
+          code: 'DEL-EAST',
+          name: 'Delhi East Hub',
+          address: 'Mayur Vihar Phase 1',
+          pincode: '110091',
+        })
+      );
     });
   });
 });

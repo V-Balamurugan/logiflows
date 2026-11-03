@@ -84,7 +84,7 @@ class EmployeeViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         user = request.user
-        org_id = request.data.get('organization_id')
+        org_id = serializer.validated_data.get('organization_id') or request.data.get('organization_id')
         if not org_id:
             # Fall back to user's first active organization
             user_membership = OrganizationMembership.objects.filter(
@@ -97,7 +97,7 @@ class EmployeeViewSet(TenantScopedViewSetMixin, viewsets.ModelViewSet):
         else:
             try:
                 organization = Organization.objects.get(id=org_id)
-            except Organization.DoesNotExist:
+            except (Organization.DoesNotExist, ValueError):
                 raise ValidationError({'organization_id': 'Specified organization does not exist.'})
 
         # Anti-spoofing validation

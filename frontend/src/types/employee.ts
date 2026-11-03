@@ -28,6 +28,7 @@ export interface Employee {
 }
 
 export interface CreateEmployeeInput {
+  organization_id?: string;
   email: string;
   first_name: string;
   last_name: string;

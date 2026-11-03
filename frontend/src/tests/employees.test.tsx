@@ -27,6 +27,7 @@ vi.mock('../api/branchApi', () => ({
 
 vi.mock('../api/organizationApi', () => ({
   getMyMembershipsApi: vi.fn(),
+  getOrganizationsApi: vi.fn(),
 }));
 
 const mockAuthOwner = {
@@ -79,6 +80,17 @@ describe('Module 6: Employees and RBAC Frontend Component Tests', () => {
         is_active: true,
       },
     ]);
+    (orgApi.getOrganizationsApi as any).mockResolvedValue({
+      count: 1,
+      results: [
+        {
+          id: 'org-123',
+          name: 'Apex Logistics',
+          code: 'APEX-LOG',
+          status: 'APPROVED',
+        },
+      ],
+    });
     (branchApi.getBranchesApi as any).mockResolvedValue({
       count: 1,
       results: [
@@ -166,6 +178,7 @@ describe('Module 6: Employees and RBAC Frontend Component Tests', () => {
     await waitFor(() => {
       expect(employeeApi.createEmployeeApi).toHaveBeenCalledWith(
         expect.objectContaining({
+          organization_id: 'org-123',
           first_name: 'Pooja',
           last_name: 'Sharma',
           email: 'pooja.sharma@apex.test',
@@ -226,6 +239,76 @@ describe('Module 6: Employees and RBAC Frontend Component Tests', () => {
 
     await waitFor(() => {
       expect(employeeApi.deactivateEmployeeApi).toHaveBeenCalledWith('emp-1');
+    });
+  });
+
+  it('allows platform admin to provision an employee into selected organization', async () => {
+    (employeeApi.getEmployeesApi as any).mockResolvedValue({
+      count: 0,
+      results: [],
+    });
+    (employeeApi.createEmployeeApi as any).mockResolvedValue({
+      id: 'emp-pa-1',
+      full_name: 'Amit Patel',
+      employee_code: 'EMP-DEL-003',
+    });
+
+    const mockAuthPlatformAdmin = {
+      user: {
+        id: 'user-pa',
+        email: 'pa@logiflows.test',
+        full_name: 'Platform Admin',
+        role: 'PLATFORM_ADMIN' as const,
+        is_active: true,
+        created_at: '2026-01-01T00:00:00Z',
+      },
+      isAuthenticated: true,
+      isLoading: false,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      updateUser: vi.fn(),
+      refreshUser: vi.fn(),
+    };
+
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={['/']}>
+          <AuthContext.Provider value={mockAuthPlatformAdmin}>
+            <TenantProvider>
+              <EmployeeListPage />
+            </TenantProvider>
+          </AuthContext.Provider>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add Employee/i })).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /Add Employee/i }));
+
+    expect(screen.getByText('Target Organization *')).toBeInTheDocument();
+
+    await userEvent.type(screen.getByPlaceholderText('Jane'), 'Amit');
+    await userEvent.type(screen.getByPlaceholderText('Doe'), 'Patel');
+    await userEvent.type(screen.getByPlaceholderText('jane.doe@company.com'), 'amit.patel@apex.test');
+    await userEvent.type(screen.getByPlaceholderText('EMP-001'), 'EMP-DEL-003');
+
+    await userEvent.click(screen.getByRole('button', { name: /^Provision Employee$/i }));
+
+    await waitFor(() => {
+      expect(employeeApi.createEmployeeApi).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organization_id: 'org-123',
+          first_name: 'Amit',
+          last_name: 'Patel',
+          email: 'amit.patel@apex.test',
+          employee_code: 'EMP-DEL-003',
+        })
+      );
     });
   });
 });

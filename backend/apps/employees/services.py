@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from .models import EmployeeProfile, EmployeeStatus
@@ -152,9 +153,9 @@ def create_employee(
             role=target_role,
             is_active=True,
         )
-        UserProfile.objects.create(
+        UserProfile.objects.get_or_create(
             user=user,
-            phone=data.get('phone', ''),
+            defaults={'phone': data.get('phone', '')},
         )
 
     # Create OrganizationMembership
@@ -173,6 +174,7 @@ def create_employee(
         designation=data.get('designation', '').strip(),
         phone=data.get('phone', '').strip(),
         status=EmployeeStatus.ACTIVE,
+        joined_date=timezone.localdate(),
         temporary_password_active=temp_password_active,
     )
 

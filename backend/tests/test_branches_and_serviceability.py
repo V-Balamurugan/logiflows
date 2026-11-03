@@ -376,3 +376,37 @@ class TestBranchAndServiceabilityAPI:
         assert response.data['match_count'] == 1
         assert response.data['providers'][0]['branch']['code'] == 'DEL-NORTH'
 
+    def test_platform_admin_can_create_branch_in_approved_org(
+        self, approved_org_a, platform_admin
+    ):
+        self.client.force_authenticate(user=platform_admin)
+        payload = {
+            'organization': str(approved_org_a.id),
+            'code': 'DEL-EAST',
+            'name': 'Delhi East Hub',
+            'address': 'Mayur Vihar, Delhi',
+            'pincode': '110091',
+            'city': 'Delhi',
+            'state': 'Delhi',
+        }
+        response = self.client.post(reverse('branch-list'), payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['code'] == 'DEL-EAST'
+
+    def test_org_owner_create_branch_defaults_to_own_org(
+        self, approved_org_a, org_a_owner
+    ):
+        self.client.force_authenticate(user=org_a_owner)
+        payload = {
+            'code': 'DEL-CENTRAL',
+            'name': 'Delhi Central Branch',
+            'address': 'Connaught Place, Delhi',
+            'pincode': '110001',
+            'city': 'Delhi',
+            'state': 'Delhi',
+        }
+        response = self.client.post(reverse('branch-list'), payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['code'] == 'DEL-CENTRAL'
+        assert response.data['organization'] == approved_org_a.id
+

@@ -31,7 +31,7 @@ class EmployeeProfile(BaseModel):
         default=EmployeeStatus.ACTIVE,
         db_index=True,
     )
-    joined_date = models.DateField('joining date', default=timezone.now)
+    joined_date = models.DateField('joining date', default=timezone.localdate)
     temporary_password_active = models.BooleanField(
         'requires password change',
         default=False,

@@ -326,3 +326,22 @@ class TestEmployeeAPIAndDeactivationLifecycle:
         response = self.client.get(detail_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    def test_platform_admin_can_provision_employee_with_organization_id(
+        self, approved_org, platform_admin, branch_main
+    ):
+        self.client.force_authenticate(user=platform_admin)
+        payload = {
+            'organization_id': str(approved_org.id),
+            'email': 'pa.created.staff@speedypost.test',
+            'first_name': 'AdminCreated',
+            'last_name': 'Worker',
+            'employee_code': 'PA-EMP-001',
+            'role': UserRole.EMPLOYEE,
+            'branch_id': str(branch_main.id),
+            'designation': 'Ops Specialist',
+        }
+        response = self.client.post(reverse('employee-list'), payload, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['email'] == 'pa.created.staff@speedypost.test'
+        assert response.data['organization_id'] == str(approved_org.id)
+
