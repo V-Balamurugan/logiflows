@@ -19,6 +19,7 @@ import {
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { Card, CardContent } from '../components/ui/Card';
+import ProcessFlowStepper from '../components/common/ProcessFlowStepper';
 
 export const LandingPage: React.FC = () => {
   const plannedFeatures = [
@@ -184,6 +185,13 @@ export const LandingPage: React.FC = () => {
               predictable client integration across web and mobile.
             </p>
           </Card>
+        </div>
+      </section>
+
+      {/* End-to-End Operational Logistics Lifecycle */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="glass-panel p-6 sm:p-8 bg-slate-900/60 border-slate-800 rounded-2xl">
+          <ProcessFlowStepper />
         </div>
       </section>
 

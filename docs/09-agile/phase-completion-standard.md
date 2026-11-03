@@ -13,13 +13,19 @@
 For every phase (Phase 01 through Phase 11), the following 6 areas **must** be updated and tested:
 
 ### 1. Role-Based Operations Dashboards (`/dashboard`)
-Every role tier must receive an intelligent, functional command center tailored to their specific operational responsibilities and current phase capabilities:
+Every role tier must receive an intelligent, functional command center structured into **5 distinct segregated sections** for optimal UX and interaction:
+1. **Section 1: Executive Command & Phase Milestone Header**: Current operational state, active tenant workspace badges, role identification, and immediate quick actions.
+2. **Section 2: Key Operational Metrics & Telemetry**: Scoped numerical KPIs, live data trends, and active resource counts (platform-wide, tenant-wide, or branch-specific).
+3. **Section 3: End-to-End Logistics Process Flow (`ProcessFlowStepper`)**: Interactive visual lifecycle (Tenant Identity → Hub Facilities → Postal Coverage → Workforce RBAC → Consignment Waybills → Custody & Dispatch), tracking completed versus upcoming milestone stages.
+4. **Section 4: Operational Command Center & Quick Controls**: Segregated category cards for Postal Coverage Verification, Tenant/Hub Directory, Workforce Provisioning, and Profile Security.
+5. **Section 5: Next Phase Roadmap Preview & Capability Unlocks**: Transparent preview card outlining capabilities unlocking in the immediate next phase.
+
+Every role tier is supported with tailored data:
 - **PLATFORM_ADMIN**: Global multi-tenant health, tenant queue counts, aggregate operational hubs, total workforce stats, and direct administrative quick actions.
 - **ORGANIZATION_OWNER / ORGANIZATION_ADMIN**: Tenant-scoped operational KPIs, branch hubs, covered delivery postal codes, active workforce roster, verified tenant status badge, and profile configuration links.
 - **BRANCH_MANAGER**: Hub operational view, assigned workforce counts, delivery postal service areas covered, and branch dispatch tools.
 - **EMPLOYEE (Couriers & Field Staff)**: Assigned organization & hub badges, duty status, postal code serviceability search, and active assignment queues.
 - **CUSTOMER**: Account verification overview, postal serviceability checker widget, B2B organization registration portal, and self-service shipment booking previews.
-- **Phase Milestone Progress Bar**: Displays currently active operational capabilities and transparently communicates what is next in the upcoming phase.
 
 ### 2. Public Announcement Banners & Layout Shells
 - **Public Header Banner (`PublicLayout.tsx`)**: Update the top announcement banner to reflect the current live phase, active multi-tenant capabilities, and direct links to health telemetry.
@@ -48,3 +54,4 @@ Every role tier must receive an intelligent, functional command center tailored 
 ## 3. Enforcement & Governance
 
 No phase pull request, commit, or acceptance gate may be approved without fulfilling this synchronization standard. This ensures the LogiFlows platform consistently feels alive, polished, and immediately understandable to all users and stakeholders.
+

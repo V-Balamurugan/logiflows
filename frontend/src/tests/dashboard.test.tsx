@@ -278,5 +278,116 @@ describe('Module 7: Dashboard Telemetry and Role Scoping', () => {
       expect(screen.getByText('Register a Logistics Company')).toBeInTheDocument();
     });
   });
+
+  it('renders all five segregated functional sections on the dashboard for enhanced UX', async () => {
+    (orgApi.getMyMembershipsApi as any).mockResolvedValue([
+      {
+        id: 'mem-1',
+        organization: 'org-apex',
+        organization_name: 'Apex Express',
+        organization_code: 'APEX',
+        organization_status: 'APPROVED',
+        user: 'user-owner',
+        user_email: 'owner@apex.test',
+        role: 'ORGANIZATION_OWNER',
+        is_active: true,
+      },
+    ]);
+
+    (dashboardApi.getDashboardSummaryApi as any).mockResolvedValue({
+      role: 'ORGANIZATION_OWNER',
+      scope: 'TENANT',
+      has_tenant: true,
+      organization: {
+        id: 'org-apex',
+        name: 'Apex Express',
+        code: 'APEX',
+        status: 'APPROVED',
+      },
+      metrics: {
+        total_branches: 3,
+        active_branches: 3,
+        inactive_branches: 0,
+        total_service_areas: 8,
+        total_employees: 5,
+        active_employees: 5,
+      },
+    });
+
+    renderWithAuth({
+      id: 'user-owner',
+      email: 'owner@apex.test',
+      full_name: 'Apex Owner',
+      role: 'ORGANIZATION_OWNER',
+      is_active: true,
+    });
+
+    await waitFor(() => {
+      // 1. Executive Command Header Section
+      expect(screen.getByTestId('section-command-header')).toBeInTheDocument();
+      expect(screen.getAllByText('Phase 02 Live')[0]).toBeInTheDocument();
+
+      // 2. Operational Metrics Section
+      expect(screen.getByTestId('section-metrics')).toBeInTheDocument();
+      expect(screen.getByText('Organization Operations KPI')).toBeInTheDocument();
+
+      // 3. Process Flow Lifecycle Section
+      expect(screen.getByTestId('section-process-flow')).toBeInTheDocument();
+      expect(screen.getByText('End-to-End Operational Logistics Lifecycle')).toBeInTheDocument();
+
+      // 4. Action Center Controls Section
+      expect(screen.getByTestId('section-action-center')).toBeInTheDocument();
+      expect(screen.getByText('Operational Command Center & Quick Controls')).toBeInTheDocument();
+
+      // 5. Next Phase Roadmap Preview Section
+      expect(screen.getByTestId('section-roadmap-preview')).toBeInTheDocument();
+      expect(screen.getByText('Next Capability Unlock: Self-Service Consignment Booking')).toBeInTheDocument();
+    });
+  });
+
+  it('renders process flow stepper with completed phase 01 and 02 stages', async () => {
+    (orgApi.getMyMembershipsApi as any).mockResolvedValue([]);
+
+    (dashboardApi.getDashboardSummaryApi as any).mockResolvedValue({
+      role: 'PLATFORM_ADMIN',
+      scope: 'GLOBAL',
+      metrics: {
+        total_organizations: 5,
+        pending_organizations: 1,
+        approved_organizations: 4,
+        suspended_organizations: 0,
+        rejected_organizations: 0,
+        total_branches: 12,
+        active_branches: 12,
+        total_service_areas: 25,
+        total_employees: 10,
+        total_users: 20,
+      },
+    });
+
+    renderWithAuth({
+      id: 'admin-1',
+      email: 'admin@logiflows.test',
+      full_name: 'Admin',
+      role: 'PLATFORM_ADMIN',
+      is_active: true,
+    });
+
+    await waitFor(() => {
+      const stepper = screen.getByTestId('process-flow-stepper');
+      expect(stepper).toBeInTheDocument();
+
+      // Check all 6 lifecycle stages are rendered
+      expect(screen.getByText('Tenant Identity & Security')).toBeInTheDocument();
+      expect(screen.getByText('Branch Hub Facilities')).toBeInTheDocument();
+      expect(screen.getByText('Postal Coverage Zones')).toBeInTheDocument();
+      expect(screen.getByText('Workforce & Role RBAC')).toBeInTheDocument();
+      expect(screen.getByText('Consignment & Waybills')).toBeInTheDocument();
+      expect(screen.getByText('Custody & Dispatch')).toBeInTheDocument();
+
+      // Check completed count badge
+      expect(screen.getByText('Phase 02: 4/4 Core Stages Live')).toBeInTheDocument();
+    });
+  });
 });
 
